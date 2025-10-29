@@ -1,10 +1,190 @@
 <?php
 
+// ============================================
+// app/Models/Book.php
+// ============================================
+
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Book extends Model
 {
-    //
+    use HasFactory;
+
+    protected $fillable = [
+        'title',
+        'subtitle',
+        'original_title',
+        'slug',
+        'publication_year',
+        'original_publisher',
+        'original_language',
+        'synopsis',
+        'full_description',
+        'isbn',
+        'pages',
+        'is_public_domain',
+        'public_domain_year',
+        'public_domain_justification',
+        'cover_url',
+        'cover_thumbnail_url',
+        'total_downloads',
+        'views',
+        'average_rating',
+        'total_ratings',
+        'is_featured',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_public_domain' => 'boolean',
+        'is_featured' => 'boolean',
+        'is_active' => 'boolean',
+        'average_rating' => 'decimal:2',
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($book) {
+            if (empty($book->slug)) {
+                $book->slug = Str::slug($book->title);
+            }
+        });
+
+        static::updated(function ($book) {
+            // Update tag usage_count when book is updated
+            if ($book->isDirty('tags')) {
+                $book->tags->each->incrementUsage();
+            }
+        });
+    }
+
+    // Relationships
+    public function authors()
+    {
+        return $this->belongsToMany(Author::class, 'book_author')
+            ->withPivot('contribution_type', 'order')
+            ->withTimestamps()
+            ->orderBy('book_author.order');
+    }
+
+    public function mainAuthors()
+    {
+        return $this->belongsToMany(Author::class, 'book_author')
+            ->wherePivot('contribution_type', 'author')
+            ->withTimestamps();
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'book_category')
+            ->withPivot('is_primary')
+            ->withTimestamps();
+    }
+
+    public function primaryCategory()
+    {
+        return $this->belongsToMany(Category::class, 'book_category')
+            ->wherePivot('is_primary', true)
+            ->withTimestamps()
+            ->first();
+    }
+
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'book_tag')
+            ->withTimestamps();
+    }
+
+    public function files()
+    {
+        return $this->hasMany(File::class);
+    }
+
+    public function activeFiles()
+    {
+        return $this->hasMany(File::class)->where('is_active', true);
+    }
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    public function scopeMostDownloaded($query, $limit = 10)
+    {
+        return $query->orderBy('total_downloads', 'desc')->limit($limit);
+    }
+
+    public function scopeTopRated($query, $limit = 10)
+    {
+        return $query->where('total_ratings', '>', 0)
+            ->orderBy('average_rating', 'desc')
+            ->limit($limit);
+    }
+
+    public function scopeByYear($query, $year)
+    {
+        return $query->where('publication_year', $year);
+    }
+
+    public function scopeBrazilian($query)
+    {
+        return $query->whereHas('authors', function ($q) {
+            $q->where('nationality', 'Brazil');
+        });
+    }
+
+    public function scopeSearch($query, $term)
+    {
+        return $query->where(function ($q) use ($term) {
+            $q->where('title', 'LIKE', "%{$term}%")
+              ->orWhere('subtitle', 'LIKE', "%{$term}%")
+              ->orWhere('synopsis', 'LIKE', "%{$term}%")
+              ->orWhereHas('authors', function ($query) use ($term) {
+                  $query->where('name', 'LIKE', "%{$term}%");
+              });
+        });
+    }
+
+    // Accessors
+    public function getFullTitleAttribute()
+    {
+        if ($this->subtitle) {
+            return "{$this->title}: {$this->subtitle}";
+        }
+        return $this->title;
+    }
+
+    public function getAuthorsNamesAttribute()
+    {
+        return $this->mainAuthors->pluck('name')->join(', ');
+    }
+
+    public function getAvailableFormatsAttribute()
+    {
+        return $this->activeFiles->pluck('format')->unique()->values();
+    }
+
+    // Utility methods
+    public function incrementViews()
+    {
+        $this->increment('views');
+    }
+
+    public function recordDownload()
+    {
+        $this->increment('total_downloads');
+    }
 }
