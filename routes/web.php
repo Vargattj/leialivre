@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\DownloadController;
+use App\Http\Controllers\ImportController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -30,3 +31,12 @@ Route::prefix('download')->name('download.')->group(function () {
     Route::get('/{id}', [DownloadController::class, 'download'])->name('file');
     Route::get('/book/{bookId}/{format}', [DownloadController::class, 'downloadByFormat'])->name('format');
 });
+
+// Admin
+Route::prefix('admin/import')->name('import.')->group(function () {
+    Route::get('/', [ImportController::class, 'index'])->name('index');
+    Route::post('/search/openlibrary', [ImportController::class, 'searchOpenLibrary'])->name('search.openlibrary');
+    Route::post('/search/gutenberg', [ImportController::class, 'searchGutenberg'])->name('search.gutenberg');
+    Route::post('/import', [ImportController::class, 'import'])->name('do');
+});
+

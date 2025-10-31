@@ -8,11 +8,10 @@
         <!-- Coluna da capa -->
         <div>
             @if($book->cover_url)
-            <img 
-                src="{{ $book->cover_url }}" 
+            <img
+                src="{{ $book->cover_url }}"
                 alt="{{ $book->title }}"
-                class="w-full rounded-lg shadow-lg"
-            >
+                class="w-full rounded-lg shadow-lg">
             @else
             <div class="w-full aspect-[3/4] bg-gray-200 rounded-lg flex items-center justify-center">
                 <span class="text-8xl">📚</span>
@@ -23,10 +22,9 @@
             <div class="mt-6 space-y-2">
                 <h3 class="font-bold mb-3">Baixar este livro:</h3>
                 @foreach($book->activeFiles as $arquivo)
-                <a 
+                <a
                     href="{{ route('download.file', $arquivo->id) }}"
-                    class="block w-full px-4 py-3 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition"
-                >
+                    class="block w-full px-4 py-3 bg-green-600 text-white text-center rounded-lg hover:bg-green-700 transition">
                     {{ $arquivo->format_icon }} Baixar {{ $arquivo->format }}
                     <span class="text-sm opacity-80">({{ $arquivo->size_readable }})</span>
                 </a>
@@ -57,7 +55,7 @@
         <!-- Coluna de informações -->
         <div class="md:col-span-2">
             <h1 class="text-4xl font-bold mb-2">{{ $book->title }}</h1>
-            
+
             @if($book->subtitle)
             <p class="text-xl text-gray-600 mb-4">{{ $book->subtitle }}</p>
             @endif
@@ -75,10 +73,9 @@
             <!-- Categorias -->
             <div class="flex flex-wrap gap-2 mb-6">
                 @foreach($book->categories as $categoria)
-                <a 
+                <a
                     href="{{ route('livros.categorias', $categoria->slug) }}"
-                    class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200"
-                >
+                    class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200">
                     {{ $categoria->name }}
                 </a>
                 @endforeach
@@ -140,7 +137,7 @@
                 <p class="text-sm text-green-700">
                     Este livro está em domínio público
                     @if($book->public_domain_year)
-                        desde {{ $book->public_domain_year }}
+                    desde {{ $book->public_domain_year }}
                     @endif
                     e pode ser baixado gratuitamente.
                 </p>
