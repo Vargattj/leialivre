@@ -118,6 +118,11 @@ class BookEnrichmentService
                 $enrichedData['author_name'] = $olMatch['author_name'];
             }
 
+            // Guardar author_key para enriquecimento posterior
+            if (!empty($olMatch['author_key'])) {
+                $enrichedData['openlibrary_author_keys'] = $olMatch['author_key'];
+            }
+
             // Fetch work details
             if (!empty($olMatch['key'])) {
                 $workDetails = $this->openLibrarySource->fetchWork($olMatch['key']);

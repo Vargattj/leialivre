@@ -7,12 +7,20 @@ use App\Models\Book;
 use App\Models\Category;
 use App\Models\Tag;
 use App\Models\File;
+use App\Services\BookDataSources\AuthorEnrichmentService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class BookImporter
 {
+    private AuthorEnrichmentService $authorEnrichmentService;
+
+    public function __construct(
+        ?AuthorEnrichmentService $authorEnrichmentService = null
+    ) {
+        $this->authorEnrichmentService = $authorEnrichmentService ?? new AuthorEnrichmentService();
+    }
     /**
      * Import enriched book to database
      */
@@ -63,13 +71,19 @@ class BookImporter
         
         // Se author_name do OL existe, usar ele
         if (!empty($enrichedData['author_name'])) {
-            foreach ($enrichedData['author_name'] as $authorName) {
+            foreach ($enrichedData['author_name'] as $index => $authorName) {
                 $author = Author::firstOrCreate(['name' => $authorName]);
+                
+                // Se o autor foi recém-criado, enriquecer com dados do OpenLibrary
+                if ($author->wasRecentlyCreated) {
+                    $this->enrichAuthorIfNew($author, $authorName, $enrichedData, $index);
+                }
+                
                 $authorModels[] = $author;
             }
         } else {
             // Caso contrário, usar authors do Gutendex
-            foreach ($authors as $authorData) {
+            foreach ($authors as $index => $authorData) {
                 $authorName = is_array($authorData) ? ($authorData['name'] ?? 'Unknown') : $authorData;
                 
                 $author = Author::firstOrCreate(
@@ -80,11 +94,59 @@ class BookImporter
                     ]
                 );
                 
+                // Se o autor foi recém-criado, enriquecer com dados do OpenLibrary
+                if ($author->wasRecentlyCreated) {
+                    $this->enrichAuthorIfNew($author, $authorName, $enrichedData, $index);
+                }
+                
                 $authorModels[] = $author;
             }
         }
         
         return $authorModels;
+    }
+
+    /**
+     * Enrich author data if it was just created
+     */
+    private function enrichAuthorIfNew(Author $author, string $authorName, array $enrichedData, int $index): void
+    {
+        try {
+            // Tentar pegar author_key do OpenLibrary se disponível
+            $authorKey = null;
+            if (!empty($enrichedData['openlibrary_author_keys'][$index])) {
+                $authorKey = '/authors/' . $enrichedData['openlibrary_author_keys'][$index];
+            }
+
+            Log::info("Enriching new author", ['author' => $authorName, 'author_key' => $authorKey]);
+            
+            $enrichedAuthorData = $this->authorEnrichmentService->enrichAuthor($authorName, $authorKey);
+            
+            if (!empty($enrichedAuthorData['sources'])) {
+                // Atualizar o autor com dados enriquecidos
+                $author->update(array_filter([
+                    'full_name' => $enrichedAuthorData['full_name'] ?? null,
+                    'pseudonyms' => $enrichedAuthorData['pseudonyms'] ?? null,
+                    'biography' => $enrichedAuthorData['biography'] ?? null,
+                    'birth_date' => $enrichedAuthorData['birth_date'] ?? null,
+                    'death_date' => $enrichedAuthorData['death_date'] ?? null,
+                    'nationality' => $enrichedAuthorData['nationality'] ?? null,
+                    'photo_url' => $enrichedAuthorData['photo_url'] ?? null,
+                ]));
+                
+                Log::info("Author enriched successfully", [
+                    'author_id' => $author->id,
+                    'sources' => $enrichedAuthorData['sources']
+                ]);
+            }
+        } catch (\Exception $e) {
+            // Não falhar a importação se o enriquecimento do autor falhar
+            Log::warning("Failed to enrich author", [
+                'author_id' => $author->id,
+                'author_name' => $authorName,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     private function createBook(array $enrichedData): Book

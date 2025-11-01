@@ -40,3 +40,8 @@ Route::prefix('admin/import')->name('import.')->group(function () {
     Route::post('/import', [ImportController::class, 'import'])->name('do');
 });
 
+
+// Welcome page
+Route::get('/welcome', function () {
+    return view('welcome');
+})->name('welcome');
