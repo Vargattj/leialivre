@@ -71,6 +71,7 @@ class ImportController extends Controller
         try {
             $response = Http::get('https://gutendex.com/books', [
                 'search' => $query,
+                'languages' => 'pt',
             ]);
 
             $data = $response->json();

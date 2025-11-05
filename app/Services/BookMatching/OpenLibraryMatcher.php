@@ -48,6 +48,16 @@ class OpenLibraryMatcher
             
             // Check author similarity
             $olAuthors = $result['author_name'] ?? [];
+            
+            // Se author_name não está disponível, buscar usando author_key
+            if (empty($olAuthors) && !empty($result['author_key'])) {
+                $olAuthors = $this->fetchAuthorNamesFromKeys($result['author_key']);
+                // Atualizar o resultado com os nomes encontrados
+                if (!empty($olAuthors)) {
+                    $result['author_name'] = $olAuthors;
+                }
+            }
+            
             $authorSim = 0.0;
             
             if (!empty($olAuthors)) {
@@ -69,6 +79,28 @@ class OpenLibraryMatcher
         }
         
         return $bestMatch;
+    }
+    
+    /**
+     * Fetch author names from author keys when author_name is not available
+     */
+    private function fetchAuthorNamesFromKeys(array $authorKeys): array
+    {
+        $authorNames = [];
+        
+        foreach ($authorKeys as $authorKey) {
+            try {
+                $authorData = $this->dataSource->fetchAuthor('/authors/' . $authorKey);
+                if (!empty($authorData['name'])) {
+                    $authorNames[] = $authorData['name'];
+                }
+            } catch (\Exception $e) {
+                // Silently continue if fetch fails
+                continue;
+            }
+        }
+        
+        return $authorNames;
     }
 }
 

@@ -111,13 +111,14 @@
                             @if ($book->original_language)
                                 <span
                                     class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
-                                    <i class="ri-global-line mr-2 text-[#B8860B]"></i>{{ $book->original_language }}
+                                    <i class="ri-global-line mr-2 text-[#B8860B]"></i>
+                                    {{ $book->original_language == 'pt' || $book->original_language == 'pt-BR' ? 'Português' : 'Inglês' }}
                                 </span>
                             @endif
                             @if ($book->is_public_domain)
                                 <span
                                     class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
-                                    <i class="ri-creative-commons-line mr-2 text-[#B8860B]"></i>Public Domain
+                                    <i class="ri-creative-commons-line mr-2 text-[#B8860B]"></i>Dominio Público
                                 </span>
                             @endif
                         </div>
@@ -278,7 +279,7 @@
                             @if ($book->original_language)
                                 <div class="flex justify-between items-center py-2 border-b border-gray-200">
                                     <span class="font-medium text-[#333333]">Idioma</span>
-                                    <span class="text-[#333333]">{{ $book->original_language }}</span>
+                                    <span class="text-[#333333]">{{ $book->original_language == 'pt' || $book->original_language == 'pt-BR' ? 'Português' : 'Inglês' }}</span>
                                 </div>
                             @endif
                             @if ($book->pages)

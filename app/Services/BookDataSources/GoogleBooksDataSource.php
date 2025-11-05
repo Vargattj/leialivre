@@ -26,6 +26,7 @@ class GoogleBooksDataSource
                     ->get("https://www.googleapis.com/books/v1/volumes", [
                         'q' => $query,
                         'langRestrict' => 'pt',
+                        'filter' => 'free-ebooks',
                         'maxResults' => 3
                     ]);
 
@@ -39,6 +40,7 @@ class GoogleBooksDataSource
                     $fallbackResponse = Http::timeout($this->timeout)
                         ->get("https://www.googleapis.com/books/v1/volumes", [
                             'q' => $query,
+                            'filter' => 'free-ebooks',
                             'maxResults' => 3
                         ]);
                     if ($fallbackResponse->successful()) {

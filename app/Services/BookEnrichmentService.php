@@ -84,11 +84,11 @@ class BookEnrichmentService
         ]);
 
         // Preferir capa do Gutenberg se disponível
-        // if (!empty($gutendexData['formats']['image/jpeg'])) {
-        //     $enrichedData['cover_url'] = $gutendexData['formats']['image/jpeg'];
-        //     $enrichedData['cover_thumbnail_url'] = $gutendexData['formats']['image/jpeg'];
-        //     Log::info('Cover selected from Gutenberg', ['url' => $enrichedData['cover_url']]);
-        // }
+        if (!empty($gutendexData['formats']['image/jpeg'])) {
+            $enrichedData['cover_url'] = $gutendexData['formats']['image/jpeg'];
+            $enrichedData['cover_thumbnail_url'] = $gutendexData['formats']['image/jpeg'];
+            Log::info('Cover selected from Gutenberg', ['url' => $enrichedData['cover_url']]);
+        }
 
         // Sumarização do Gutenberg (se existir) como fallback em EN
         if (!empty($gutendexData['summaries'][0])) {
@@ -165,7 +165,7 @@ class BookEnrichmentService
             }
 
             // Se não houver capa ainda, usar a do Google (thumbnail)
-            if (empty($enrichedData['cover_url']) && !empty($googleBooks['imageLinks']['thumbnail'])) {
+            if (!empty($googleBooks['imageLinks']['thumbnail'])) {
                 $enrichedData['cover_url'] = $googleBooks['imageLinks']['thumbnail'];
                 $enrichedData['cover_thumbnail_url'] = $googleBooks['imageLinks']['smallThumbnail'] ?? $googleBooks['imageLinks']['thumbnail'];
                 Log::info('Cover selected from Google Books');
