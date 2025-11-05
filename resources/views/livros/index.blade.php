@@ -1,12 +1,7 @@
-<!-- ============================================ -->
-<!-- resources/views/livros/index.blade.php -->
-<!-- Lista de livros -->
-<!-- ============================================ -->
-
 @extends('layouts.app')
 
 @section('title')
-    @if(isset($category))
+    @if (isset($category))
         {{ $category->name }} - Livros em Domínio Público
     @elseif(isset($term))
         Busca: "{{ $term }}" - Livros em Domínio Público
@@ -16,101 +11,197 @@
 @endsection
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    @if(isset($category))
-        <h1 class="text-4xl font-bold mb-8">Livros em: {{ $category->name }}</h1>
-    @elseif(isset($term))
-        <h1 class="text-4xl font-bold mb-8">Resultados da busca: "{{ $term }}"</h1>
-    @else
-        <h1 class="text-4xl font-bold mb-8">Livros em Domínio Público</h1>
-    @endif
-
-    <!-- Formulário de busca -->
-    <form action="{{ route('livros.buscar') }}" method="GET" class="mb-8">
-        <div class="flex gap-2">
-            <input 
-                type="text" 
-                name="q" 
-                placeholder="Buscar livros ou autores..." 
-                class="flex-1 px-4 py-2 border rounded-lg"
-                value="{{ request('q') }}"
-            >
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Buscar
-            </button>
-        </div>
-    </form>
-
-    <!-- Grade de livros -->
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        @foreach($books as $book)
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition">
-            <!-- Capa do livro -->
-            @if($book->cover_thumbnail_url)
-            <img 
-                src="{{ $book->cover_thumbnail_url }}" 
-                alt="{{ $book->title }}"
-                class="w-full h-64 object-cover"
-            >
-            @else
-            <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
-                <span class="text-6xl">📚</span>
-            </div>
-            @endif
-
-            <!-- Informações -->
-            <div class="p-4">
-                <h3 class="font-bold text-lg mb-2 line-clamp-2">
-                  <a href="{{ route('livros.show', $book->slug) }}" class="hover:text-blue-600">
-                        {{ $book->title }}
-                    </a> 
-                </h3>
-                
-                <p class="text-gray-600 text-sm mb-2">
-                    {{ $book->authors_names }}
-                </p>
-
-                <p class="text-gray-500 text-xs mb-3 line-clamp-2">
-                    {{ $book->synopsis }}
-                </p>
-
-                <!-- Badges de categoria -->
-                <div class="flex flex-wrap gap-1 mb-3">
-                    @foreach($book->categories->take(2) as $categoria)
-                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                        {{ $categoria->name }}
-                    </span>
-                    @endforeach
+    <div class="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-r from-[#004D40] to-[#00695C] text-white py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-8">
+                    @if (isset($category))
+                        <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ $category->name }}</h1>
+                        <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                            Explore nossa coleção de livros em {{ $category->name }} disponíveis gratuitamente
+                        </p>
+                    @elseif(isset($term))
+                        <h1 class="text-4xl md:text-5xl font-bold mb-4">Resultados da Busca</h1>
+                        <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                            Encontramos resultados para "{{ $term }}"
+                        </p>
+                    @else
+                        <h1 class="text-4xl md:text-5xl font-bold mb-4">Biblioteca de Livros</h1>
+                        <p class="text-xl text-white/90 max-w-3xl mx-auto">
+                            Descubra sua próxima grande leitura em nossa vasta coleção de livros gratuitos
+                        </p>
+                    @endif
                 </div>
 
-                <!-- Formatos disponíveis -->
-                {{-- <div class="flex gap-2">
-                    @foreach($book->available_at as $formato)
-                    <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                        {{ $formato }}
-                    </span>
-                    @endforeach
-                </div> --}}
+                <!-- Search Form -->
+                <form class="max-w-4xl mx-auto" action="{{ route('livros.buscar') }}" method="GET">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="ri-search-line text-gray-400 text-xl"></i>
+                        </div>
+                        <input name="q" placeholder="Buscar por título, autor, gênero ou palavras-chave..."
+                            class="block w-full pl-12 pr-4 py-4 text-lg border-0 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20"
+                            type="text" value="{{ request('q') }}">
+                    </div>
+                </form>
+            </div>
+        </section>
 
-                <!-- Estatísticas -->
-                <div class="flex justify-between items-center mt-3 text-xs text-gray-500">
-                    <span>📥 {{ number_format($book->total_downloads) }} downloads</span>
-                    @if($book->average_rating > 0)
-                    <span>⭐ {{ number_format($book->average_rating, 1) }}</span>
+        <!-- Breadcrumb -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <nav class="flex items-center space-x-2 text-sm text-gray-600">
+                <a href="{{ route('home') }}" class="hover:text-[#004D40] transition-colors">Início</a>
+                <i class="ri-arrow-right-s-line"></i>
+                <span class="text-[#004D40] font-medium">
+                    @if (isset($category))
+                        {{ $category->name }}
+                    @elseif(isset($term))
+                        Busca
+                    @else
+                        Livros
+                    @endif
+                </span>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <!-- Sidebar Filters -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-bold text-[#333333]">Filtros</h2>
+                            <button class="text-[#004D40] text-sm font-medium hover:underline">Avançado</button>
+                        </div>
+
+                        <!-- Sort By -->
+                        <form method="GET" action="{{ request()->url() }}" id="filterForm">
+                            @if (request('q'))
+                                <input type="hidden" name="q" value="{{ request('q') }}">
+                            @endif
+                            @if (request('category'))
+                                <input type="hidden" name="category" value="{{ request('category') }}">
+                            @endif
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Ordenar Por</label>
+                                <select name="sort"
+                                    class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#004D40] pr-8"
+                                    onchange="document.getElementById('filterForm').submit()">
+                                    <option value="relevance"
+                                        {{ ($sort ?? 'relevance') == 'relevance' ? 'selected' : '' }}>Relevância</option>
+                                    <option value="title" {{ ($sort ?? '') == 'title' ? 'selected' : '' }}>Título A-Z
+                                    </option>
+                                    <option value="author" {{ ($sort ?? '') == 'author' ? 'selected' : '' }}>Autor A-Z
+                                    </option>
+                                    <option value="year" {{ ($sort ?? '') == 'year' ? 'selected' : '' }}>Mais Recentes
+                                    </option>
+                                    <option value="downloads" {{ ($sort ?? '') == 'downloads' ? 'selected' : '' }}>Mais
+                                        Baixados</option>
+                                    <option value="rating" {{ ($sort ?? '') == 'rating' ? 'selected' : '' }}>Melhor
+                                        Avaliados</option>
+                                </select>
+                            </div>
+
+                            <!-- Genre Filter -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Gênero</label>
+                                <select name="category"
+                                    class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#004D40] pr-8"
+                                    onchange="document.getElementById('filterForm').submit()">
+                                    <option value="">Todos os Gêneros</option>
+                                    @if (isset($popularCategories) && $popularCategories->count() > 0)
+                                        @foreach ($popularCategories as $cat)
+                                            <option value="{{ $cat->slug }}"
+                                                {{ request('category') == $cat->slug ? 'selected' : '' }}>
+                                                {{ $cat->name }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
+                        </form>
+
+                        <!-- Quick Browse -->
+                        <div class="mt-8">
+                            <h3 class="text-sm font-medium text-gray-700 mb-3">Navegação Rápida</h3>
+                            <div class="space-y-2">
+                                <a href="{{ route('livros.index') }}"
+                                    class="w-full text-left p-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-[#004D40] transition-colors flex items-center">
+                                    <i class="ri-book-open-line mr-2"></i>Literatura Clássica
+                                </a>
+                                <a href="{{ route('livros.mais-baixados') }}"
+                                    class="w-full text-left p-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-[#004D40] transition-colors flex items-center">
+                                    <i class="ri-download-line mr-2"></i>Mais Baixados
+                                </a>
+                                <a href="{{ route('autores.index') }}"
+                                    class="w-full text-left p-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-[#004D40] transition-colors flex items-center">
+                                    <i class="ri-team-line mr-2"></i>Autores
+                                </a>
+                                <a href="{{ route('livros.index') }}?sort=rating"
+                                    class="w-full text-left p-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 hover:text-[#004D40] transition-colors flex items-center">
+                                    <i class="ri-star-line mr-2"></i>Melhor Avaliados
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Books Grid -->
+                <div class="lg:col-span-3">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-[#333333]">
+                                @if (isset($category))
+                                    Livros em {{ $category->name }}
+                                @elseif(isset($term))
+                                    Resultados da Busca
+                                @else
+                                    Explorar Todos os Livros
+                                @endif
+                            </h2>
+                            <p class="text-gray-600 mt-1">
+                                {{ $books->total() }}
+                                {{ $books->total() == 1 ? 'livro encontrado' : 'livros encontrados' }}
+                                @if (isset($totalAuthors) && $totalAuthors)
+                                    • {{ $totalAuthors }} {{ $totalAuthors == 1 ? 'autor' : 'autores' }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    @if ($books->count() > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                            @foreach ($books as $book)
+                                <x-book-card-grid :book="$book" />
+                            @endforeach
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="mt-8">
+                            {{ $books->links() }}
+                        </div>
+                    @else
+                        <div class="text-center py-16">
+                            <div class="text-6xl mb-4">📚</div>
+                            <h3 class="text-2xl font-bold text-[#333333] mb-2">Nenhum livro encontrado</h3>
+                            <p class="text-gray-600 mb-6">
+                                @if (isset($term))
+                                    Não encontramos livros para "{{ $term }}". Tente uma busca diferente.
+                                @else
+                                    Não há livros disponíveis no momento.
+                                @endif
+                            </p>
+                            <a href="{{ route('livros.index') }}"
+                                class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#004D40] text-white hover:bg-[#00695C] px-6 py-3 rounded-lg">
+                                <i class="ri-arrow-left-line mr-2"></i>Ver Todos os Livros
+                            </a>
+                        </div>
                     @endif
                 </div>
             </div>
         </div>
-        @endforeach
     </div>
-
-    <!-- Paginação -->
-    <div class="mt-8">
-        {{ $books->links() }}
-    </div>
-</div>
 @endsection
-
-
-
-

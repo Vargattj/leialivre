@@ -6,33 +6,29 @@ use Illuminate\Support\Facades\Cache;
 
 class CacheManager
 {
+    /**
+     * Cache desativado - sempre retorna null
+     */
     public function get(string $key)
     {
-        return Cache::store('file')->get($key);
+        return null;
     }
 
+    /**
+     * Cache desativado - não faz nada
+     */
     public function put(string $key, $value, int $ttl): bool
     {
-        try {
-            return Cache::store('file')->put($key, $value, $ttl);
-        } catch (\Throwable $t) {
-            return false;
-        }
+        return false;
     }
 
+    /**
+     * Cache desativado - sempre executa o callback sem verificar cache
+     */
     public function remember(string $key, int $ttl, callable $callback)
     {
-        $cached = $this->get($key);
-        if ($cached !== null) {
-            return $cached;
-        }
-
-        $value = $callback();
-        if ($value !== null) {
-            $this->put($key, $value, $ttl);
-        }
-
-        return $value;
+        // Sempre executa o callback sem verificar cache
+        return $callback();
     }
 }
 

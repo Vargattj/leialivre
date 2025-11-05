@@ -38,20 +38,31 @@ class AuthorEnrichmentService
         }
 
         // 2. Wikidata (prioridade alta para dados estruturados)
-        $wikidataData = $this->wikidataSource->searchAuthor($authorName);
-        if (!empty($wikidataData)) {
-            $enrichedData = $this->mergeAuthorData($enrichedData, $wikidataData, 'wikidata');
-            $enrichedData['sources'][] = 'wikidata';
-        }
+        // $wikidataData = $this->wikidataSource->searchAuthor($authorName);
+        // if (!empty($wikidataData)) {
+        //     $enrichedData = $this->mergeAuthorData($enrichedData, $wikidataData, 'wikidata');
+        //     $enrichedData['sources'][] = 'wikidata';
+        // }
 
-        // 3. Wikipedia (prioridade alta para biografia)
+        // 3. Wikipedia (prioridade alta para biografia e foto)
         $wikipediaUrl = $wikidataData['wikipedia_url'] ?? null;
-        $wikipediaBio = $this->wikipediaSource->fetchBiography($authorName, $wikipediaUrl);
-        if ($wikipediaBio) {
+        $wikipediaData = $this->wikipediaSource->fetchPageData($authorName, $wikipediaUrl);
+        
+        if (!empty($wikipediaData)) {
             // Preferir biografia da Wikipedia se ela for mais completa
-            if (empty($enrichedData['biography']) || strlen($wikipediaBio) > strlen($enrichedData['biography'])) {
-                $enrichedData['biography'] = $wikipediaBio;
+            if (!empty($wikipediaData['biography'])) {
+                $wikipediaBio = $wikipediaData['biography'];
+                if (empty($enrichedData['biography']) || strlen($wikipediaBio) > strlen($enrichedData['biography'] ?? '')) {
+                    $enrichedData['biography'] = $wikipediaBio;
+                }
             }
+
+            // Preferir foto da Wikipedia se disponível (geralmente melhor qualidade)
+            if (!empty($wikipediaData['thumbnail'])) {
+                $enrichedData['photo_url'] = $wikipediaData['thumbnail'];
+                Log::info('Author photo from Wikipedia', ['url' => $wikipediaData['thumbnail']]);
+            }
+
             $enrichedData['sources'][] = 'wikipedia';
         }
 

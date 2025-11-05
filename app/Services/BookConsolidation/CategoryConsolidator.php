@@ -39,6 +39,14 @@ class CategoryConsolidator
             "Autobiography" => "Autobiografia",
             "Essays" => "Ensaios",
             "Mythology" => "Mitologia",
+            "Juvenile Fiction" => "Ficção Juvenil",
+            "Juvenile Mystery" => "Mistério Juvenil",
+            "Juvenile Romance" => "Romance Juvenil",
+            "Juvenile Science Fiction" => "Ficção Científica Juvenil",
+            "Juvenile Fantasy" => "Fantasia Juvenil",
+            "Juvenile Horror" => "Horror Juvenil",
+            "Juvenile Thriller" => "Suspense Juvenil",
+            "Juvenile Drama" => "Drama Juvenil",
         ];
         
         foreach ($enrichedData['bookshelves'] ?? [] as $shelf) {

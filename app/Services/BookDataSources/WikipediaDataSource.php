@@ -37,25 +37,37 @@ class WikipediaDataSource
      */
     public function fetchBiography(string $authorName, ?string $wikipediaUrl = null): ?string
     {
+        $pageData = $this->fetchPageData($authorName, $wikipediaUrl);
+        return $pageData['biography'] ?? null;
+    }
+
+    /**
+     * Fetch complete page data from Wikipedia (biography + thumbnail)
+     */
+    public function fetchPageData(string $authorName, ?string $wikipediaUrl = null): array
+    {
         try {
+            $pageTitle = null;
+            
             // Se temos URL da Wikipedia, usar diretamente
             if ($wikipediaUrl) {
                 $pageTitle = $this->extractPageTitle($wikipediaUrl);
-                if ($pageTitle) {
-                    return $this->fetchPageContent($pageTitle);
-                }
             }
 
-            // Buscar por nome
-            return $this->searchAndFetch($authorName);
+            // Se não temos título, buscar por nome
+            if (!$pageTitle) {
+                $pageTitle = $authorName;
+            }
+
+            return $this->fetchPageContent($pageTitle);
 
         } catch (\Exception $e) {
-            Log::error('Error fetching Wikipedia biography', [
+            Log::error('Error fetching Wikipedia data', [
                 'author' => $authorName,
                 'error' => $e->getMessage(),
             ]);
 
-            return null;
+            return [];
         }
     }
 
@@ -72,48 +84,46 @@ class WikipediaDataSource
     }
 
     /**
-     * Search author and fetch biography
+     * Fetch Wikipedia page content (returns array with biography and thumbnail)
      */
-    private function searchAndFetch(string $authorName): ?string
+    private function fetchPageContent(string $pageTitle, string $lang = 'pt'): array
     {
-        try {
-            // Tentar em português primeiro
-            $bio = $this->fetchPageContent($authorName, 'pt');
+        $result = ['biography' => null, 'thumbnail' => null];
 
-            return $bio;
-
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
-
-    /**
-     * Fetch Wikipedia page content
-     */
-    private function fetchPageContent(string $pageTitle, string $lang = 'pt'): ?string
-    {
         try {
             // A API REST da Wikipedia aceita títulos com underscores (espaços)
             $pageTitleFormatted = str_replace(' ', '_', $pageTitle);
+            
+            // Tentar português primeiro
             $response = $this->makeRequest("https://{$lang}.wikipedia.org/api/rest_v1/page/summary/{$pageTitleFormatted}");
+
+            if (!$response->successful() && $lang === 'pt') {
+                // Fallback para inglês se PT falhar
+                $response = $this->makeRequest("https://en.wikipedia.org/api/rest_v1/page/summary/{$pageTitleFormatted}");
+            }
 
             if ($response->successful()) {
                 $data = $response->json();
 
-                // Combinar extract e description
-                $biography = '';
-                if (! empty($data['extract'])) {
+                // Extrair biografia
+                if (!empty($data['extract'])) {
                     $biography = $data['extract'];
-                } elseif (! empty($data['description'])) {
+                } elseif (!empty($data['description'])) {
                     $biography = $data['description'];
                 }
 
-                // Limitar tamanho
-                if (strlen($biography) > 5000) {
-                    $biography = substr($biography, 0, 5000).'...';
+                if (!empty($biography)) {
+                    // Limitar tamanho
+                    if (strlen($biography) > 5000) {
+                        $biography = substr($biography, 0, 5000).'...';
+                    }
+                    $result['biography'] = $biography;
                 }
 
-                return $biography ?: null;
+                // Extrair thumbnail
+                if (!empty($data['thumbnail']['source'])) {
+                    $result['thumbnail'] = $data['thumbnail']['source'];
+                }
             }
         } catch (\Exception $e) {
             Log::warning('Error fetching Wikipedia page', [
@@ -123,6 +133,6 @@ class WikipediaDataSource
             ]);
         }
 
-        return null;
+        return $result;
     }
 }
