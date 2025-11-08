@@ -6,6 +6,7 @@ use App\Services\BookDataSources\CacheManager;
 use App\Services\BookDataSources\GutendexDataSource;
 use App\Services\BookDataSources\OpenLibraryDataSource;
 use App\Services\BookDataSources\GoogleBooksDataSource;
+use App\Services\BookDataSources\WikipediaDataSource;
 use App\Services\BookMatching\AuthorMatcher;
 use App\Services\BookMatching\OpenLibraryMatcher;
 use App\Services\BookConsolidation\CategoryConsolidator;
@@ -20,6 +21,7 @@ class BookEnrichmentService
     private GutendexDataSource $gutendexSource;
     private OpenLibraryDataSource $openLibrarySource;
     private GoogleBooksDataSource $googleBooksSource;
+    private WikipediaDataSource $wikipediaSource;
     private OpenLibraryMatcher $openLibraryMatcher;
     private CategoryConsolidator $categoryConsolidator;
     private TagConsolidator $tagConsolidator;
@@ -30,6 +32,7 @@ class BookEnrichmentService
         ?GutendexDataSource $gutendexSource = null,
         ?OpenLibraryDataSource $openLibrarySource = null,
         ?GoogleBooksDataSource $googleBooksSource = null,
+        ?WikipediaDataSource $wikipediaSource = null,
         ?OpenLibraryMatcher $openLibraryMatcher = null,
         ?CategoryConsolidator $categoryConsolidator = null,
         ?TagConsolidator $tagConsolidator = null,
@@ -39,6 +42,7 @@ class BookEnrichmentService
         $this->gutendexSource = $gutendexSource ?? new GutendexDataSource();
         $this->openLibrarySource = $openLibrarySource ?? new OpenLibraryDataSource();
         $this->googleBooksSource = $googleBooksSource ?? new GoogleBooksDataSource();
+        $this->wikipediaSource = $wikipediaSource ?? new WikipediaDataSource();
         $this->openLibraryMatcher = $openLibraryMatcher ?? new OpenLibraryMatcher();
         $this->categoryConsolidator = $categoryConsolidator ?? new CategoryConsolidator();
         $this->tagConsolidator = $tagConsolidator ?? new TagConsolidator();
@@ -113,10 +117,8 @@ class BookEnrichmentService
             $enrichedData['first_publish_year'] = $olMatch['first_publish_year'] ?? null;
             $enrichedData['match_score'] = $olMatch['match_score'] ?? 0;
             
-            // Substituir o nome do autor do Gutenberg pelo do OpenLibrary (se disponíveis)
-            if (!empty($olMatch['author_name'])) {
-                $enrichedData['author_name'] = $olMatch['author_name'];
-            }
+            // Não substituir o nome do autor do Gutenberg - usar apenas o Gutenberg
+            // (o tratamento do nome será feito no BookImporter)
 
             // Guardar author_key para enriquecimento posterior
             if (!empty($olMatch['author_key'])) {
@@ -169,6 +171,48 @@ class BookEnrichmentService
                 $enrichedData['cover_url'] = $googleBooks['imageLinks']['thumbnail'];
                 $enrichedData['cover_thumbnail_url'] = $googleBooks['imageLinks']['smallThumbnail'] ?? $googleBooks['imageLinks']['thumbnail'];
                 Log::info('Cover selected from Google Books');
+            }
+        }
+
+        // 4. Fallback: Enrich with Wikipedia (se Google Books não retornou dados suficientes)
+        $needsWikipediaFallback = empty($googleBooks) || 
+                                  (empty($enrichedData['description_pt']) && empty($enrichedData['cover_url']));
+        
+        if ($needsWikipediaFallback) {
+            Log::info("📖 Searching Wikipedia as fallback...");
+            // Construir query cuidadosa: título + autor para encontrar a página correta do livro
+            $wikipediaQuery = $title;
+            if (!empty($authorName) && $authorName !== 'Unknown') {
+                // Usar "Título (autor)" que é o formato comum na Wikipedia
+                $wikipediaQuery = "{$title} ({$authorName})";
+            }
+            
+            // Tentar buscar primeiro com o formato completo
+            $wikipediaData = $this->wikipediaSource->fetchPageData($wikipediaQuery);
+            
+            // Se não encontrou, tentar apenas com título + autor sem parênteses
+            if (empty($wikipediaData['biography']) && empty($wikipediaData['thumbnail'])) {
+                $wikipediaQuery = !empty($authorName) && $authorName !== 'Unknown' 
+                    ? "{$title} {$authorName}" 
+                    : $title;
+                $wikipediaData = $this->wikipediaSource->fetchPageData($wikipediaQuery);
+            }
+            
+            if (!empty($wikipediaData) && (!empty($wikipediaData['biography']) || !empty($wikipediaData['thumbnail']))) {
+                $enrichedData['sources'][] = 'wikipedia';
+                
+                // Descrição: só usar se Google Books não forneceu
+                if (empty($enrichedData['description_pt']) && !empty($wikipediaData['biography'])) {
+                    $enrichedData['description_wiki'] = $wikipediaData['biography'];
+                    Log::info('Description set from Wikipedia (fallback)');
+                }
+                
+                // Capa: só usar se ainda não temos
+                if (empty($enrichedData['cover_url']) && !empty($wikipediaData['thumbnail'])) {
+                    $enrichedData['cover_url'] = $wikipediaData['thumbnail'];
+                    $enrichedData['cover_thumbnail_url'] = $wikipediaData['thumbnail'];
+                    Log::info('Cover selected from Wikipedia (fallback)', ['url' => $wikipediaData['thumbnail']]);
+                }
             }
         }
         

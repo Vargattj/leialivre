@@ -67,35 +67,51 @@ class BookImporter
     private function createOrFindAuthors(array $enrichedData): array
     {
         $authorModels = [];
-        $authors = $enrichedData['author_name'] ?? $enrichedData['authors'] ?? [];
         
-        // Se author_name do OL existe, usar ele
-        if (!empty($enrichedData['author_name'])) {
-            foreach ($enrichedData['author_name'] as $index => $authorName) {
-                $author = Author::firstOrCreate(['name' => $authorName]);
+        // Priorizar autores do Gutenberg (authors)
+        if (!empty($enrichedData['authors'])) {
+            foreach ($enrichedData['authors'] as $index => $authorData) {
+                $authorName = is_array($authorData) ? ($authorData['name'] ?? 'Unknown') : $authorData;
                 
-                // Se o autor foi recém-criado, enriquecer com dados do OpenLibrary
-                if ($author->wasRecentlyCreated) {
+                // Tratar nome do Gutenberg (converter "Sobrenome, Nome" para "Nome Sobrenome")
+                $authorName = $this->normalizeGutenbergAuthorName($authorName);
+                
+                // Buscar primeiro por slug para evitar duplicatas
+                $slug = Str::slug($authorName);
+                $author = Author::where('slug', $slug)->first();
+                
+                if (!$author) {
+                    // Se não encontrou pelo slug, buscar pelo nome (case-insensitive)
+                    $author = Author::whereRaw('LOWER(name) = ?', [strtolower($authorName)])->first();
+                }
+                
+                if (!$author) {
+                    // Se ainda não encontrou, criar novo
+                    $author = Author::create([
+                        'name' => $authorName,
+                        'birth_date' => isset($authorData['birth_year']) ? "{$authorData['birth_year']}-01-01" : null,
+                        'death_date' => isset($authorData['death_year']) ? "{$authorData['death_year']}-01-01" : null,
+                    ]);
                     $this->enrichAuthorIfNew($author, $authorName, $enrichedData, $index);
                 }
                 
                 $authorModels[] = $author;
             }
-        } else {
-            // Caso contrário, usar authors do Gutendex
-            foreach ($authors as $index => $authorData) {
-                $authorName = is_array($authorData) ? ($authorData['name'] ?? 'Unknown') : $authorData;
+        } elseif (!empty($enrichedData['author_name'])) {
+            // Fallback: usar author_name do Open Library se não houver autores do Gutenberg
+            foreach ($enrichedData['author_name'] as $index => $authorName) {
+                // Buscar primeiro por slug para evitar duplicatas
+                $slug = Str::slug($authorName);
+                $author = Author::where('slug', $slug)->first();
                 
-                $author = Author::firstOrCreate(
-                    ['name' => $authorName],
-                    [
-                        'birth_date' => isset($authorData['birth_year']) ? "{$authorData['birth_year']}-01-01" : null,
-                        'death_date' => isset($authorData['death_year']) ? "{$authorData['death_year']}-01-01" : null,
-                    ]
-                );
+                if (!$author) {
+                    // Se não encontrou pelo slug, buscar pelo nome (case-insensitive)
+                    $author = Author::whereRaw('LOWER(name) = ?', [strtolower($authorName)])->first();
+                }
                 
-                // Se o autor foi recém-criado, enriquecer com dados do OpenLibrary
-                if ($author->wasRecentlyCreated) {
+                if (!$author) {
+                    // Se ainda não encontrou, criar novo
+                    $author = Author::create(['name' => $authorName]);
                     $this->enrichAuthorIfNew($author, $authorName, $enrichedData, $index);
                 }
                 
@@ -219,6 +235,42 @@ class BookImporter
                 ]);
             }
         }
+    }
+
+    /**
+     * Normaliza nome do autor do Gutenberg
+     * Converte formato "Sobrenome, Nome" para "Nome Sobrenome"
+     * 
+     * Exemplos:
+     * - "Junqueiro, Abílio Manuel Guerra" -> "Abílio Manuel Guerra Junqueiro"
+     * - "Abreu, Francisco Jorge de" -> "Francisco Jorge de Abreu"
+     * - "Figueiredo, Cândido de" -> "Cândido de Figueiredo"
+     * - "Pato, Raimundo António de Bulhão" -> "Raimundo António de Bulhão Pato"
+     */
+    private function normalizeGutenbergAuthorName(string $name): string
+    {
+        // Se não contém vírgula, retornar como está
+        if (!str_contains($name, ',')) {
+            return trim($name);
+        }
+
+        // Dividir por vírgula
+        $parts = explode(',', $name, 2);
+        
+        if (count($parts) !== 2) {
+            return trim($name);
+        }
+
+        $surname = trim($parts[0]);
+        $firstName = trim($parts[1]);
+
+        // Se o primeiro nome está vazio, retornar como está
+        if (empty($firstName)) {
+            return trim($name);
+        }
+
+        // Reconstruir no formato "Nome Sobrenome"
+        return $firstName . ' ' . $surname;
     }
 }
 

@@ -188,8 +188,11 @@ class BookImportService
             $authors = [];
             if (isset($data['authors'])) {
                 foreach ($data['authors'] as $authorData) {
+                    // Tratar nome do Gutenberg (converter "Sobrenome, Nome" para "Nome Sobrenome")
+                    $authorName = $this->normalizeGutenbergAuthorName($authorData['name'] ?? 'Unknown');
+                    
                     $author = Author::firstOrCreate(
-                        ['name' => $authorData['name']],
+                        ['name' => $authorName],
                         [
                             'birth_date' => $authorData['birth_year'] ? "{$authorData['birth_year']}-01-01" : null,
                             'death_date' => $authorData['death_year'] ? "{$authorData['death_year']}-01-01" : null,
@@ -413,5 +416,41 @@ class BookImportService
         ];
 
         return $map[$code] ?? $code;
+    }
+
+    /**
+     * Normaliza nome do autor do Gutenberg
+     * Converte formato "Sobrenome, Nome" para "Nome Sobrenome"
+     * 
+     * Exemplos:
+     * - "Junqueiro, Abílio Manuel Guerra" -> "Abílio Manuel Guerra Junqueiro"
+     * - "Abreu, Francisco Jorge de" -> "Francisco Jorge de Abreu"
+     * - "Figueiredo, Cândido de" -> "Cândido de Figueiredo"
+     * - "Pato, Raimundo António de Bulhão" -> "Raimundo António de Bulhão Pato"
+     */
+    private function normalizeGutenbergAuthorName(string $name): string
+    {
+        // Se não contém vírgula, retornar como está
+        if (!str_contains($name, ',')) {
+            return trim($name);
+        }
+
+        // Dividir por vírgula
+        $parts = explode(',', $name, 2);
+        
+        if (count($parts) !== 2) {
+            return trim($name);
+        }
+
+        $surname = trim($parts[0]);
+        $firstName = trim($parts[1]);
+
+        // Se o primeiro nome está vazio, retornar como está
+        if (empty($firstName)) {
+            return trim($name);
+        }
+
+        // Reconstruir no formato "Nome Sobrenome"
+        return $firstName . ' ' . $surname;
     }
 }

@@ -39,6 +39,12 @@ class OpenLibraryMatcher
         $bestScore = 0.0;
         
         foreach ($olResults as $result) {
+            // Filtrar resultados com first_publish_year anterior a 1955
+            $firstPublishYear = $result['first_publish_year'] ?? null;
+            if ($firstPublishYear !== null && $firstPublishYear >= 1955) {
+                continue; // Pular resultados muito recentes
+            }
+            
             // Calculate title similarity (accent-insensitive)
             $resultTitle = $result['title'] ?? '';
             $t1 = strtolower(Str::ascii($title));

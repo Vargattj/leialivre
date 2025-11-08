@@ -23,13 +23,13 @@ class WikipediaDataSource
     /**
      * Make HTTP request with proper user agent
      */
-    private function makeRequest(string $url): \Illuminate\Http\Client\Response
+    private function makeRequest(string $url, array $params = []): \Illuminate\Http\Client\Response
     {
         return Http::timeout($this->timeout)
             ->withHeaders([
                 'User-Agent' => $this->getUserAgent(),
             ])
-            ->get($url);
+            ->get($url, $params);
     }
 
     /**
@@ -44,7 +44,7 @@ class WikipediaDataSource
     /**
      * Fetch complete page data from Wikipedia (biography + thumbnail)
      */
-    public function fetchPageData(string $authorName, ?string $wikipediaUrl = null): array
+    public function fetchPageData(string $query, ?string $wikipediaUrl = null): array
     {
         try {
             $pageTitle = null;
@@ -54,21 +54,75 @@ class WikipediaDataSource
                 $pageTitle = $this->extractPageTitle($wikipediaUrl);
             }
 
-            // Se não temos título, buscar por nome
+            // Se não temos título, buscar usando a API de busca
             if (!$pageTitle) {
-                $pageTitle = $authorName;
+                $pageTitle = $this->searchPage($query);
+            }
+
+            // Se ainda não encontrou, tentar diretamente com o query
+            if (!$pageTitle) {
+                $pageTitle = $query;
             }
 
             return $this->fetchPageContent($pageTitle);
 
         } catch (\Exception $e) {
             Log::error('Error fetching Wikipedia data', [
-                'author' => $authorName,
+                'query' => $query,
                 'error' => $e->getMessage(),
             ]);
 
             return [];
         }
+    }
+
+    /**
+     * Search for a Wikipedia page using the search API
+     */
+    public function searchPage(string $query, string $lang = 'pt'): ?string
+    {
+        try {
+            $response = $this->makeRequest("https://{$lang}.wikipedia.org/w/api.php", [
+                'action' => 'query',
+                'list' => 'search',
+                'srsearch' => $query,
+                'srlimit' => 5,
+                'format' => 'json',
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $results = $data['query']['search'] ?? [];
+                
+                if (!empty($results)) {
+                    // Pegar o primeiro resultado (mais relevante)
+                    $firstResult = $results[0];
+                    $pageTitle = $firstResult['title'] ?? null;
+                    
+                    if ($pageTitle) {
+                        Log::info('Wikipedia page found via search', [
+                            'query' => $query,
+                            'page' => $pageTitle,
+                        ]);
+                        return $pageTitle;
+                    }
+                }
+            }
+
+            // Fallback para inglês se não encontrou em português
+            if ($lang === 'pt') {
+                return $this->searchPage($query, 'en');
+            }
+
+        } catch (\Exception $e) {
+            Log::warning('Error searching Wikipedia', [
+                'query' => $query,
+                'lang' => $lang,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
     }
 
     /**
@@ -93,13 +147,15 @@ class WikipediaDataSource
         try {
             // A API REST da Wikipedia aceita títulos com underscores (espaços)
             $pageTitleFormatted = str_replace(' ', '_', $pageTitle);
+            // Codificar URL para lidar com acentos e caracteres especiais
+            $pageTitleEncoded = rawurlencode($pageTitleFormatted);
             
             // Tentar português primeiro
-            $response = $this->makeRequest("https://{$lang}.wikipedia.org/api/rest_v1/page/summary/{$pageTitleFormatted}");
+            $response = $this->makeRequest("https://{$lang}.wikipedia.org/api/rest_v1/page/summary/{$pageTitleEncoded}");
 
             if (!$response->successful() && $lang === 'pt') {
                 // Fallback para inglês se PT falhar
-                $response = $this->makeRequest("https://en.wikipedia.org/api/rest_v1/page/summary/{$pageTitleFormatted}");
+                $response = $this->makeRequest("https://en.wikipedia.org/api/rest_v1/page/summary/{$pageTitleEncoded}");
             }
 
             if ($response->successful()) {

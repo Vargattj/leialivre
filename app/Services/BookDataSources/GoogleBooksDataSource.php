@@ -17,7 +17,7 @@ class GoogleBooksDataSource
 
     public function search(string $title, string $author): ?array
     {
-        $query = 'intitle:' . $title . '+inauthor:' . $author;
+        $query = 'intitle:' . $title . '+inauthor:' . $author . '+before:1960';
         $cacheKey = "google_books_" . md5($query);
         
         return $this->cacheManager->remember($cacheKey, 3600, function () use ($query) {
@@ -25,8 +25,6 @@ class GoogleBooksDataSource
                 $response = Http::timeout($this->timeout)
                     ->get("https://www.googleapis.com/books/v1/volumes", [
                         'q' => $query,
-                        'langRestrict' => 'pt',
-                        'filter' => 'free-ebooks',
                         'maxResults' => 3
                     ]);
 
@@ -37,16 +35,15 @@ class GoogleBooksDataSource
                         return $first;
                     }
                     // Fallback: retry without langRestrict if nothing found
-                    $fallbackResponse = Http::timeout($this->timeout)
-                        ->get("https://www.googleapis.com/books/v1/volumes", [
-                            'q' => $query,
-                            'filter' => 'free-ebooks',
-                            'maxResults' => 3
-                        ]);
-                    if ($fallbackResponse->successful()) {
-                        $fallbackData = $fallbackResponse->json();
-                        return $fallbackData['items'][0]['volumeInfo'] ?? null;
-                    }
+                    // $fallbackResponse = Http::timeout($this->timeout)
+                    //     ->get("https://www.googleapis.com/books/v1/volumes", [
+                    //         'q' => $query,
+                    //         'maxResults' => 3
+                    //     ]);
+                    // if ($fallbackResponse->successful()) {
+                    //     $fallbackData = $fallbackResponse->json();
+                    //     return $fallbackData['items'][0]['volumeInfo'] ?? null;
+                    // }
                 }
             } catch (\Exception $e) {
                 Log::error("Error searching Google Books", ['error' => $e->getMessage()]);

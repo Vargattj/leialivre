@@ -39,7 +39,17 @@ class Author extends Model
 
         static::creating(function ($author) {
             if (empty($author->slug)) {
-                $author->slug = Str::slug($author->name);
+                $baseSlug = Str::slug($author->name);
+                $slug = $baseSlug;
+                $counter = 1;
+                
+                // Garantir que o slug seja único
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+                
+                $author->slug = $slug;
             }
         });
     }
