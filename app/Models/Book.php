@@ -37,6 +37,29 @@ class Book extends Model
         'total_ratings',
         'is_featured',
         'is_active',
+        // Google Books fields
+        'google_books_description',
+        'google_books_categories',
+        'google_books_page_count',
+        'google_books_average_rating',
+        'google_books_ratings_count',
+        'google_books_published_date',
+        'google_books_cover_thumbnail_url',
+        // OpenLibrary fields
+        'openlibrary_description',
+        'openlibrary_isbn',
+        'openlibrary_publisher',
+        'openlibrary_first_publish_year',
+        'openlibrary_cover_id',
+        'openlibrary_cover_thumbnail_url',
+        // Gutendex fields
+        'gutendex_description',
+        'gutendex_subjects',
+        'gutendex_bookshelves',
+        'gutendex_download_count',
+        // Wikipedia fields
+        'wikipedia_description',
+        'wikipedia_cover_thumbnail_url',
     ];
 
     protected $casts = [
@@ -44,6 +67,10 @@ class Book extends Model
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
         'average_rating' => 'decimal:2',
+        'google_books_categories' => 'array',
+        'google_books_average_rating' => 'decimal:2',
+        'gutendex_subjects' => 'array',
+        'gutendex_bookshelves' => 'array',
     ];
 
     protected static function boot()

@@ -24,12 +24,26 @@ class Author extends Model
         'nationality',
         'photo_url',
         'slug',
+        // OpenLibrary fields
+        'openlibrary_description',
+        'openlibrary_alternate_names',
+        'openlibrary_birth_date',
+        'openlibrary_death_date',
+        'openlibrary_nationality',
+        'openlibrary_photo_id',
+        'openlibrary_photo_url',
+        // Wikipedia fields
+        'wikipedia_biography',
+        'wikipedia_photo_url',
     ];
 
     protected $casts = [
         'pseudonyms' => 'array',
         'birth_date' => 'date',
         'death_date' => 'date',
+        'openlibrary_alternate_names' => 'array',
+        'openlibrary_birth_date' => 'date',
+        'openlibrary_death_date' => 'date',
     ];
 
     // Auto-generate slug

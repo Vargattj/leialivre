@@ -140,14 +140,26 @@ class BookImporter
             
             if (!empty($enrichedAuthorData['sources'])) {
                 // Atualizar o autor com dados enriquecidos
+                // NÃO atualizar full_name - manter nome do Gutenberg
                 $author->update(array_filter([
-                    'full_name' => $enrichedAuthorData['full_name'] ?? null,
+                    // 'full_name' => NÃO atualizar - manter nome do Gutenberg
                     'pseudonyms' => $enrichedAuthorData['pseudonyms'] ?? null,
                     'biography' => $enrichedAuthorData['biography'] ?? null,
                     'birth_date' => $enrichedAuthorData['birth_date'] ?? null,
                     'death_date' => $enrichedAuthorData['death_date'] ?? null,
                     'nationality' => $enrichedAuthorData['nationality'] ?? null,
                     'photo_url' => $enrichedAuthorData['photo_url'] ?? null,
+                    // OpenLibrary fields
+                    'openlibrary_description' => $enrichedAuthorData['openlibrary_description'] ?? null,
+                    'openlibrary_alternate_names' => $enrichedAuthorData['openlibrary_alternate_names'] ?? null,
+                    'openlibrary_birth_date' => $enrichedAuthorData['openlibrary_birth_date'] ?? null,
+                    'openlibrary_death_date' => $enrichedAuthorData['openlibrary_death_date'] ?? null,
+                    'openlibrary_nationality' => $enrichedAuthorData['openlibrary_nationality'] ?? null,
+                    'openlibrary_photo_id' => $enrichedAuthorData['openlibrary_photo_id'] ?? null,
+                    'openlibrary_photo_url' => $enrichedAuthorData['openlibrary_photo_url'] ?? null,
+                    // Wikipedia fields
+                    'wikipedia_biography' => $enrichedAuthorData['wikipedia_biography'] ?? null,
+                    'wikipedia_photo_url' => $enrichedAuthorData['wikipedia_photo_url'] ?? null,
                 ]));
                 
                 Log::info("Author enriched successfully", [
@@ -167,11 +179,28 @@ class BookImporter
 
     private function createBook(array $enrichedData): Book
     {
+        // Usar sinopse enriquecida com IA se disponível, senão usar fallback
+        $synopsis = !empty($enrichedData['final_synopsis']) 
+            ? trim($enrichedData['final_synopsis']) 
+            : Str::limit($enrichedData['final_description_pt'] ?? '', 500);
+        
+        // Usar descrição enriquecida com IA se disponível
+        $fullDescription = !empty($enrichedData['final_description_pt']) 
+            ? trim($enrichedData['final_description_pt']) 
+            : 'Descrição não disponível';
+        
+        Log::info('Creating book with enriched data', [
+            'title' => $enrichedData['title'] ?? 'Unknown',
+            'synopsis_length' => strlen($synopsis),
+            'description_length' => strlen($fullDescription),
+            'ai_used' => $enrichedData['use_ai'] ?? false,
+        ]);
+        
         return Book::create([
             'title' => $enrichedData['title'],
             'original_language' => $enrichedData['languages'][0] ?? 'en',
-            'synopsis' => Str::limit($enrichedData['final_description_pt'], 500),
-            'full_description' => $enrichedData['final_description_pt'],
+            'synopsis' => $synopsis,
+            'full_description' => $fullDescription,
             'publication_year' => $enrichedData['first_publish_year'] ?? null,
             'pages' => $enrichedData['page_count'] ?? null,
             'isbn' => !empty($enrichedData['isbn']) ? (is_array($enrichedData['isbn']) ? $enrichedData['isbn'][0] : $enrichedData['isbn']) : null,
@@ -183,6 +212,29 @@ class BookImporter
             'average_rating' => $enrichedData['average_rating'] ?? 0,
             'total_ratings' => $enrichedData['ratings_count'] ?? 0,
             'is_featured' => ($enrichedData['download_count'] ?? 0) > 1000,
+            // Google Books fields
+            'google_books_description' => $enrichedData['google_books_description'] ?? null,
+            'google_books_categories' => $enrichedData['google_books_categories'] ?? null,
+            'google_books_page_count' => $enrichedData['google_books_page_count'] ?? null,
+            'google_books_average_rating' => $enrichedData['google_books_average_rating'] ?? null,
+            'google_books_ratings_count' => $enrichedData['google_books_ratings_count'] ?? null,
+            'google_books_published_date' => $enrichedData['google_books_published_date'] ?? null,
+            'google_books_cover_thumbnail_url' => $enrichedData['google_books_cover_thumbnail_url'] ?? null,
+            // OpenLibrary fields
+            'openlibrary_description' => $enrichedData['openlibrary_description'] ?? null,
+            'openlibrary_isbn' => $enrichedData['openlibrary_isbn'] ?? null,
+            'openlibrary_publisher' => $enrichedData['openlibrary_publisher'] ?? null,
+            'openlibrary_first_publish_year' => $enrichedData['openlibrary_first_publish_year'] ?? null,
+            'openlibrary_cover_id' => $enrichedData['openlibrary_cover_id'] ?? null,
+            'openlibrary_cover_thumbnail_url' => $enrichedData['openlibrary_cover_thumbnail_url'] ?? null,
+            // Gutendex fields
+            'gutendex_description' => $enrichedData['gutendex_description'] ?? null,
+            'gutendex_subjects' => $enrichedData['gutendex_subjects'] ?? null,
+            'gutendex_bookshelves' => $enrichedData['gutendex_bookshelves'] ?? null,
+            'gutendex_download_count' => $enrichedData['gutendex_download_count'] ?? null,
+            // Wikipedia fields
+            'wikipedia_description' => $enrichedData['wikipedia_description'] ?? null,
+            'wikipedia_cover_thumbnail_url' => $enrichedData['wikipedia_cover_thumbnail_url'] ?? null,
         ]);
     }
 

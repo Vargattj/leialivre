@@ -54,12 +54,23 @@ class WikipediaDataSource
                 $pageTitle = $this->extractPageTitle($wikipediaUrl);
             }
 
-            // Se não temos título, buscar usando a API de busca
+            // Tentar primeiro usar o query diretamente na API REST (mais rápido)
+            // Isso evita uma requisição desnecessária se o título já estiver correto
+            if (!$pageTitle) {
+                $directResult = $this->fetchPageContent($query);
+                // Se encontrou dados, retornar diretamente (evita busca)
+                if (!empty($directResult['biography']) || !empty($directResult['thumbnail'])) {
+                    Log::info('Wikipedia page found via direct query', ['query' => $query]);
+                    return $directResult;
+                }
+            }
+
+            // Se não encontrou diretamente, buscar usando a API de busca para encontrar o título exato
             if (!$pageTitle) {
                 $pageTitle = $this->searchPage($query);
             }
 
-            // Se ainda não encontrou, tentar diretamente com o query
+            // Se ainda não encontrou, tentar diretamente com o query (última tentativa)
             if (!$pageTitle) {
                 $pageTitle = $query;
             }

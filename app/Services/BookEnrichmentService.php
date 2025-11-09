@@ -12,6 +12,8 @@ use App\Services\BookMatching\OpenLibraryMatcher;
 use App\Services\BookConsolidation\CategoryConsolidator;
 use App\Services\BookConsolidation\TagConsolidator;
 use App\Services\BookConsolidation\DescriptionConsolidator;
+use App\Services\BookConsolidation\AIDescriptionConsolidator;
+use App\Services\BookConsolidation\AISynopsisGenerator;
 use App\Services\BookImport\BookImporter;
 use App\Models\Book;
 use Illuminate\Support\Facades\Log;
@@ -26,6 +28,8 @@ class BookEnrichmentService
     private CategoryConsolidator $categoryConsolidator;
     private TagConsolidator $tagConsolidator;
     private DescriptionConsolidator $descriptionConsolidator;
+    private AIDescriptionConsolidator $aiDescriptionConsolidator;
+    private AISynopsisGenerator $aiSynopsisGenerator;
     private BookImporter $bookImporter;
 
     public function __construct(
@@ -37,6 +41,8 @@ class BookEnrichmentService
         ?CategoryConsolidator $categoryConsolidator = null,
         ?TagConsolidator $tagConsolidator = null,
         ?DescriptionConsolidator $descriptionConsolidator = null,
+        ?AIDescriptionConsolidator $aiDescriptionConsolidator = null,
+        ?AISynopsisGenerator $aiSynopsisGenerator = null,
         ?BookImporter $bookImporter = null
     ) {
         $this->gutendexSource = $gutendexSource ?? new GutendexDataSource();
@@ -47,6 +53,8 @@ class BookEnrichmentService
         $this->categoryConsolidator = $categoryConsolidator ?? new CategoryConsolidator();
         $this->tagConsolidator = $tagConsolidator ?? new TagConsolidator();
         $this->descriptionConsolidator = $descriptionConsolidator ?? new DescriptionConsolidator();
+        $this->aiDescriptionConsolidator = $aiDescriptionConsolidator ?? new AIDescriptionConsolidator();
+        $this->aiSynopsisGenerator = $aiSynopsisGenerator ?? new AISynopsisGenerator();
         $this->bookImporter = $bookImporter ?? new BookImporter();
     }
 
@@ -85,6 +93,11 @@ class BookEnrichmentService
             'bookshelves' => $gutendexData['bookshelves'] ?? [],
             'download_links' => $gutendexData['formats'] ?? [],
             'download_count' => $gutendexData['download_count'] ?? 0,
+            // Gutendex raw data for storage
+            'gutendex_subjects' => $gutendexData['subjects'] ?? [],
+            'gutendex_bookshelves' => $gutendexData['bookshelves'] ?? [],
+            'gutendex_download_count' => $gutendexData['download_count'] ?? 0,
+            'gutendex_summaries' => $gutendexData['summaries'] ?? [],
         ]);
 
         // Preferir capa do Gutenberg se disponível
@@ -97,6 +110,7 @@ class BookEnrichmentService
         // Sumarização do Gutenberg (se existir) como fallback em EN
         if (!empty($gutendexData['summaries'][0])) {
             $enrichedData['description_en'] = $gutendexData['summaries'][0];
+            $enrichedData['gutendex_description'] = $gutendexData['summaries'][0];
             Log::info('Description (en) set from Gutenberg summaries');
         }
 
@@ -131,16 +145,27 @@ class BookEnrichmentService
                 if (!empty($workDetails['description'])) {
                     $desc = $workDetails['description'];
                     $enrichedData['description_en'] = is_string($desc) ? $desc : ($desc['value'] ?? '');
+                    $enrichedData['openlibrary_description'] = is_string($desc) ? $desc : ($desc['value'] ?? '');
                 }
                 
                 // Get cover URLs
-                if (!empty($olMatch['cover_i']) && empty($enrichedData['cover_url'])) {
+                if (!empty($olMatch['cover_i'])) {
                     $coverId = $olMatch['cover_i'];
-                    $enrichedData['cover_url'] = "https://covers.openlibrary.org/b/id/{$coverId}-L.jpg";
-                    $enrichedData['cover_thumbnail_url'] = "https://covers.openlibrary.org/b/id/{$coverId}-M.jpg";
-                    Log::info('Cover selected from OpenLibrary', ['cover_id' => $coverId]);
+                    $enrichedData['openlibrary_cover_id'] = $coverId;
+                    $enrichedData['openlibrary_cover_thumbnail_url'] = "https://covers.openlibrary.org/b/id/{$coverId}-M.jpg";
+                    
+                    if (empty($enrichedData['cover_url'])) {
+                        $enrichedData['cover_url'] = "https://covers.openlibrary.org/b/id/{$coverId}-L.jpg";
+                        $enrichedData['cover_thumbnail_url'] = "https://covers.openlibrary.org/b/id/{$coverId}-M.jpg";
+                        Log::info('Cover selected from OpenLibrary', ['cover_id' => $coverId]);
+                    }
                 }
             }
+            
+            // Store OpenLibrary raw data
+            $enrichedData['openlibrary_isbn'] = !empty($enrichedData['isbn']) ? (is_array($enrichedData['isbn']) ? $enrichedData['isbn'][0] : $enrichedData['isbn']) : null;
+            $enrichedData['openlibrary_publisher'] = !empty($enrichedData['publisher']) ? (is_array($enrichedData['publisher']) ? $enrichedData['publisher'][0] : $enrichedData['publisher']) : null;
+            $enrichedData['openlibrary_first_publish_year'] = $enrichedData['first_publish_year'] ?? null;
         }
         
         // 3. Enrich with Google Books
@@ -154,6 +179,14 @@ class BookEnrichmentService
             $enrichedData['page_count'] = $googleBooks['pageCount'] ?? null;
             $enrichedData['average_rating'] = $googleBooks['averageRating'] ?? null;
             $enrichedData['ratings_count'] = $googleBooks['ratingsCount'] ?? null;
+            
+            // Store Google Books raw data
+            $enrichedData['google_books_description'] = $googleBooks['description'] ?? null;
+            $enrichedData['google_books_categories'] = $googleBooks['categories'] ?? [];
+            $enrichedData['google_books_page_count'] = $googleBooks['pageCount'] ?? null;
+            $enrichedData['google_books_average_rating'] = $googleBooks['averageRating'] ?? null;
+            $enrichedData['google_books_ratings_count'] = $googleBooks['ratingsCount'] ?? null;
+            $enrichedData['google_books_published_date'] = $googleBooks['publishedDate'] ?? null;
 
             // Tentar extrair ano de publicação do Google Books
             if (!empty($googleBooks['publishedDate'])) {
@@ -170,6 +203,7 @@ class BookEnrichmentService
             if (!empty($googleBooks['imageLinks']['thumbnail'])) {
                 $enrichedData['cover_url'] = $googleBooks['imageLinks']['thumbnail'];
                 $enrichedData['cover_thumbnail_url'] = $googleBooks['imageLinks']['smallThumbnail'] ?? $googleBooks['imageLinks']['thumbnail'];
+                $enrichedData['google_books_cover_thumbnail_url'] = $googleBooks['imageLinks']['smallThumbnail'] ?? $googleBooks['imageLinks']['thumbnail'];
                 Log::info('Cover selected from Google Books');
             }
         }
@@ -201,6 +235,10 @@ class BookEnrichmentService
             if (!empty($wikipediaData) && (!empty($wikipediaData['biography']) || !empty($wikipediaData['thumbnail']))) {
                 $enrichedData['sources'][] = 'wikipedia';
                 
+                // Store Wikipedia raw data
+                $enrichedData['wikipedia_description'] = $wikipediaData['biography'] ?? null;
+                $enrichedData['wikipedia_cover_thumbnail_url'] = $wikipediaData['thumbnail'] ?? null;
+                
                 // Descrição: só usar se Google Books não forneceu
                 if (empty($enrichedData['description_pt']) && !empty($wikipediaData['biography'])) {
                     $enrichedData['description_wiki'] = $wikipediaData['biography'];
@@ -219,12 +257,72 @@ class BookEnrichmentService
         // 4. Final consolidation
         $enrichedData['final_categories'] = $this->categoryConsolidator->consolidate($enrichedData);
         $enrichedData['final_tags'] = $this->tagConsolidator->consolidate($enrichedData);
+        
+        // Consolidação normal primeiro
         $enrichedData['final_description_pt'] = $this->descriptionConsolidator->consolidate($enrichedData);
+        
+        // 5. Enriquecimento com IA (se habilitado)
+        try {
+            $aiDescription = $this->aiDescriptionConsolidator->consolidateWithAI($enrichedData);
+            if (!empty($aiDescription) && trim($aiDescription) !== trim($enrichedData['final_description_pt'])) {
+                $enrichedData['final_description_pt'] = trim($aiDescription);
+                $enrichedData['final_description_ai'] = trim($aiDescription);
+                $enrichedData['use_ai'] = true;
+                Log::info('Description enriched with AI', [
+                    'title' => $enrichedData['title'] ?? 'Unknown',
+                    'description_length' => strlen($aiDescription),
+                ]);
+            } else {
+                Log::debug('AI description same as fallback or empty, keeping fallback', [
+                    'title' => $enrichedData['title'] ?? 'Unknown',
+                ]);
+                $enrichedData['use_ai'] = false;
+            }
+        } catch (\Exception $e) {
+            Log::warning('Failed to enrich description with AI, using fallback', [
+                'error' => $e->getMessage(),
+                'title' => $enrichedData['title'] ?? 'Unknown',
+            ]);
+            $enrichedData['use_ai'] = false;
+        }
+        
+        // Gerar sinopse com IA (se habilitado)
+        try {
+            $aiSynopsis = $this->aiSynopsisGenerator->generate(
+                $enrichedData,
+                $enrichedData['final_description_pt']
+            );
+            if (!empty($aiSynopsis)) {
+                $enrichedData['final_synopsis'] = trim($aiSynopsis);
+                Log::info('Synopsis generated with AI', [
+                    'title' => $enrichedData['title'] ?? 'Unknown',
+                    'synopsis_length' => strlen($aiSynopsis),
+                ]);
+            } else {
+                // Fallback: truncar descrição
+                $enrichedData['final_synopsis'] = \Illuminate\Support\Str::limit(
+                    $enrichedData['final_description_pt'],
+                    500
+                );
+                Log::debug('AI synopsis empty, using fallback truncation');
+            }
+        } catch (\Exception $e) {
+            Log::warning('Failed to generate synopsis with AI, using fallback', [
+                'error' => $e->getMessage(),
+                'title' => $enrichedData['title'] ?? 'Unknown',
+            ]);
+            // Fallback: truncar descrição
+            $enrichedData['final_synopsis'] = \Illuminate\Support\Str::limit(
+                $enrichedData['final_description_pt'],
+                500
+            );
+        }
         
         Log::info("✅ Enrichment complete", [
             'sources' => $enrichedData['sources'],
             'categories' => count($enrichedData['final_categories']),
-            'tags' => count($enrichedData['final_tags'])
+            'tags' => count($enrichedData['final_tags']),
+            'ai_enabled' => $enrichedData['use_ai'] ?? false,
         ]);
         
         return $enrichedData;

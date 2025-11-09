@@ -2,6 +2,8 @@
 
 namespace App\Services\BookDataSources;
 
+use App\Services\AI\OpenAIService;
+use App\Services\AI\PromptBuilder;
 use Illuminate\Support\Facades\Log;
 
 class AuthorEnrichmentService
@@ -9,15 +11,21 @@ class AuthorEnrichmentService
     private OpenLibraryDataSource $openLibrarySource;
     private WikidataDataSource $wikidataSource;
     private WikipediaDataSource $wikipediaSource;
+    private OpenAIService $openAIService;
+    private PromptBuilder $promptBuilder;
 
     public function __construct(
         ?OpenLibraryDataSource $openLibrarySource = null,
         ?WikidataDataSource $wikidataSource = null,
-        ?WikipediaDataSource $wikipediaSource = null
+        ?WikipediaDataSource $wikipediaSource = null,
+        ?OpenAIService $openAIService = null,
+        ?PromptBuilder $promptBuilder = null
     ) {
         $this->openLibrarySource = $openLibrarySource ?? new OpenLibraryDataSource();
         $this->wikidataSource = $wikidataSource ?? new WikidataDataSource();
         $this->wikipediaSource = $wikipediaSource ?? new WikipediaDataSource();
+        $this->openAIService = $openAIService ?? new OpenAIService();
+        $this->promptBuilder = $promptBuilder ?? new PromptBuilder();
     }
 
     /**
@@ -35,6 +43,14 @@ class AuthorEnrichmentService
         if (!empty($olData['source'])) {
             $enrichedData = array_merge($enrichedData, $olData);
             $enrichedData['sources'][] = 'openlibrary';
+            // Store OpenLibrary raw data
+            $enrichedData['openlibrary_description'] = $olData['biography'] ?? null;
+            $enrichedData['openlibrary_alternate_names'] = $olData['pseudonyms'] ?? null;
+            $enrichedData['openlibrary_birth_date'] = $olData['birth_date'] ?? null;
+            $enrichedData['openlibrary_death_date'] = $olData['death_date'] ?? null;
+            $enrichedData['openlibrary_nationality'] = $olData['nationality'] ?? null;
+            $enrichedData['openlibrary_photo_id'] = $olData['photo_id'] ?? null;
+            $enrichedData['openlibrary_photo_url'] = $olData['photo_url'] ?? null;
         }
 
         // 2. Wikidata (prioridade alta para dados estruturados)
@@ -45,10 +61,14 @@ class AuthorEnrichmentService
         // }
 
         // 3. Wikipedia (prioridade alta para biografia e foto)
-        $wikipediaUrl = $wikidataData['wikipedia_url'] ?? null;
+        $wikipediaUrl = null; // $wikidataData['wikipedia_url'] ?? null; // Desabilitado até Wikidata ser implementado
         $wikipediaData = $this->wikipediaSource->fetchPageData($authorName, $wikipediaUrl);
         
         if (!empty($wikipediaData)) {
+            // Store Wikipedia raw data
+            $enrichedData['wikipedia_biography'] = $wikipediaData['biography'] ?? null;
+            $enrichedData['wikipedia_photo_url'] = $wikipediaData['thumbnail'] ?? null;
+            
             // Preferir biografia da Wikipedia se ela for mais completa
             if (!empty($wikipediaData['biography'])) {
                 $wikipediaBio = $wikipediaData['biography'];
@@ -66,24 +86,80 @@ class AuthorEnrichmentService
             $enrichedData['sources'][] = 'wikipedia';
         }
 
+        // 4. Enriquecimento de biografia com IA (se habilitado)
+        if (!empty($enrichedData['biography']) || !empty($enrichedData['openlibrary_description']) || !empty($enrichedData['wikipedia_biography'])) {
+            try {
+                $aiBiography = $this->enrichBiographyWithAI($enrichedData);
+                if (!empty($aiBiography) && $aiBiography !== ($enrichedData['biography'] ?? '')) {
+                    $enrichedData['biography'] = $aiBiography;
+                    $enrichedData['biography_ai'] = $aiBiography;
+                    $enrichedData['use_ai'] = true;
+                    Log::info('Biography enriched with AI', [
+                        'author' => $authorName,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Failed to enrich biography with AI, using fallback', [
+                    'error' => $e->getMessage(),
+                    'author' => $authorName,
+                ]);
+                $enrichedData['use_ai'] = false;
+            }
+        }
+
         Log::info("Author enrichment completed", [
             'author' => $authorName,
             'sources' => $enrichedData['sources'],
             'has_biography' => !empty($enrichedData['biography']),
             'has_dates' => !empty($enrichedData['birth_date']) || !empty($enrichedData['death_date']),
+            'ai_enabled' => $enrichedData['use_ai'] ?? false,
         ]);
 
         return $enrichedData;
     }
 
     /**
+     * Enriquecer biografia com IA
+     */
+    private function enrichBiographyWithAI(array $enrichedData): ?string
+    {
+        if (!$this->openAIService->isEnabled()) {
+            return null;
+        }
+
+        try {
+            $prompt = $this->promptBuilder->buildBiographyPrompt($enrichedData);
+            $cacheKey = $this->openAIService->generateCacheKey('biography', [
+                'name' => $enrichedData['name'] ?? '',
+                'sources' => $enrichedData['sources'] ?? [],
+            ]);
+
+            $biography = $this->openAIService->generateBiography($prompt, $cacheKey);
+
+            if ($biography !== null && !empty(trim($biography))) {
+                return trim($biography);
+            }
+
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error('Error enriching biography with AI', [
+                'error' => $e->getMessage(),
+                'author' => $enrichedData['name'] ?? 'Unknown',
+            ]);
+            return null;
+        }
+    }
+
+    /**
      * Fetch data from OpenLibrary
+     * Apenas busca se tiver author_key (não busca por nome para manter nome do Gutenberg)
      */
     private function fetchOpenLibraryData(string $authorName, ?string $authorKey): array
     {
         $enrichedData = [];
 
-        // Se temos author_key do OpenLibrary, buscar diretamente
+        // Apenas buscar se temos author_key do OpenLibrary (não buscar por nome)
         if ($authorKey) {
             $authorData = $this->openLibrarySource->fetchAuthor($authorKey);
             if (!empty($authorData)) {
@@ -91,12 +167,7 @@ class AuthorEnrichmentService
             }
         }
 
-        // Caso contrário, buscar por nome
-        $authorData = $this->searchAuthorByName($authorName);
-        if (!empty($authorData)) {
-            return $this->mapOpenLibraryAuthorData($authorData, $enrichedData);
-        }
-
+        // Não fazer busca por nome - manter nome do Gutenberg
         return $enrichedData;
     }
 
@@ -130,48 +201,11 @@ class AuthorEnrichmentService
         return $current;
     }
 
-    /**
-     * Search author by name on OpenLibrary
-     */
-    private function searchAuthorByName(string $authorName): array
-    {
-        try {
-            // Buscar obras do autor para encontrar a chave do autor
-            $works = $this->openLibrarySource->search($authorName, '');
-            
-            if (empty($works)) {
-                return [];
-            }
 
-            // Pegar o primeiro author_key encontrado
-            $firstWork = $works[0] ?? null;
-            if (empty($firstWork['author_key'])) {
-                return [];
-            }
-
-            $authorKey = '/authors/' . $firstWork['author_key'][0];
-            return $this->openLibrarySource->fetchAuthor($authorKey);
-            
-        } catch (\Exception $e) {
-            Log::error("Error searching author by name", [
-                'author' => $authorName,
-                'error' => $e->getMessage()
-            ]);
-            return [];
-        }
-    }
-
-    /**
-     * Map OpenLibrary author data to our format
-     */
+  
     private function mapOpenLibraryAuthorData(array $olData, array $enrichedData): array
     {
         $enrichedData['source'] = 'openlibrary';
-        
-        // Nome completo
-        if (!empty($olData['name'])) {
-            $enrichedData['full_name'] = $olData['name'];
-        }
 
         // Pseudônimos
         if (!empty($olData['alternate_names'])) {
@@ -217,6 +251,7 @@ class AuthorEnrichmentService
         // Foto
         if (!empty($olData['photos'])) {
             $photoId = is_array($olData['photos']) ? $olData['photos'][0] : $olData['photos'];
+            $enrichedData['photo_id'] = $photoId;
             $enrichedData['photo_url'] = "https://covers.openlibrary.org/a/id/{$photoId}-L.jpg";
         }
 
