@@ -139,20 +139,46 @@
                 @endif
                     <!-- Download Section -->
                     @if ($book->activeFiles->count() > 0)
+                        @php
+                            // Ordem de preferência dos formatos (do mais popular para o menos popular)
+                            $formatPriority = [
+                                'PDF' => 1,
+                                'EPUB' => 2,
+                                'MOBI' => 3,
+                                'AZW' => 4,
+                                'AZW3' => 5,
+                                'TXT' => 6,
+                                'RTF' => 7,
+                                'DOC' => 8,
+                                'DOCX' => 9,
+                                'HTML' => 10,
+                                'HTM' => 11,
+                                'ZIP' => 12,
+                            ];
+                            
+                            // Ordenar arquivos por prioridade
+                            $sortedFiles = $book->activeFiles->sortBy(function ($file) use ($formatPriority) {
+                                $format = strtoupper($file->format);
+                                return $formatPriority[$format] ?? 999; // Formatos não listados vão para o final
+                            })->values();
+                            
+                            $selectedFormat = $sortedFiles->first();
+                        @endphp
                         <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-200">
                             <h3 class="text-xl font-semibold text-[#333333] mb-6">Baixar Este Livro</h3>
                             <div class="mb-6">
                                 <div class="flex flex-wrap gap-3">
-                                    @php
-                                        $selectedFormat = $book->activeFiles->first();
-                                    @endphp
-                                    @foreach ($book->activeFiles as $file)
+                                    @foreach ($sortedFiles as $file)
                                         <button
-                                            onclick="selectFormat('{{ $file->format }}', '{{ $file->id }}', '{{ route('download.file', $file->id) }}')"
+                                            onclick="selectFormat('{{ $file->format }}', '{{ $file->id }}', '{{ route('download.file', $file->id) }}', '{{ $file->size_readable ?? '' }}')"
                                             class="format-btn px-4 py-2 text-sm rounded-lg border transition-all duration-200 {{ $file->id === $selectedFormat->id ? 'bg-[#004D40] text-white border-[#004D40] shadow-lg' : 'bg-white text-[#333333] border-gray-300 hover:border-[#004D40] hover:shadow-md' }}"
                                             data-format="{{ $file->format }}" data-file-id="{{ $file->id }}"
-                                            data-download-url="{{ route('download.file', $file->id) }}">
-                                            {{ $file->format }}
+                                            data-download-url="{{ route('download.file', $file->id) }}"
+                                            data-size="{{ $file->size_readable ?? '' }}">
+                                            <span class="font-medium">{{ $file->format }}</span>
+                                            @if ($file->size_readable)
+                                                <span class="text-xs opacity-75 ml-1">({{ $file->size_readable }})</span>
+                                            @endif
                                         </button>
                                     @endforeach
                                 </div>
@@ -162,7 +188,7 @@
                                 <i class="ri-download-cloud-line mr-3 text-xl"></i>
                                 Baixar Formato {{ $selectedFormat->format }}
                             </a>
-                            <p class="text-sm text-gray-600 mt-3 text-center">
+                            <p id="downloadInfo" class="text-sm text-gray-600 mt-3 text-center">
                                 Download gratuito • Sem necessidade de registro
                                 @if ($selectedFormat->size_readable)
                                     • {{ $selectedFormat->size_readable }}
@@ -381,7 +407,7 @@
     </div>
 
     <script>
-        function selectFormat(format, fileId, downloadUrl) {
+        function selectFormat(format, fileId, downloadUrl, size) {
             // Update button styles
             document.querySelectorAll('.format-btn').forEach(btn => {
                 btn.classList.remove('bg-[#004D40]', 'text-white', 'border-[#004D40]', 'shadow-lg');
@@ -396,7 +422,20 @@
             // Update download button
             const downloadBtn = document.getElementById('downloadBtn');
             downloadBtn.href = downloadUrl;
+            
+            // Update button text and size info
+            let sizeText = size ? ` • ${size}` : '';
             downloadBtn.innerHTML = `<i class="ri-download-cloud-line mr-3 text-xl"></i>Baixar Formato ${format}`;
+            
+            // Update size info below button
+            const sizeInfo = document.querySelector('#downloadBtn').nextElementSibling;
+            if (sizeInfo && sizeInfo.tagName === 'P') {
+                let sizeInfoText = 'Download gratuito • Sem necessidade de registro';
+                if (size) {
+                    sizeInfoText += ` • ${size}`;
+                }
+                sizeInfo.textContent = sizeInfoText;
+            }
         }
 
         function shareBook() {

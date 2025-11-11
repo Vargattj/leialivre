@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\ImportController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +33,15 @@ Route::prefix('download')->name('download.')->group(function () {
     Route::get('/{id}', [DownloadController::class, 'download'])->name('file');
     Route::get('/book/{bookId}/{format}', [DownloadController::class, 'downloadByFormat'])->name('format');
 });
+
+// Contact
+Route::prefix('contato')->name('contact.')->group(function () {
+    Route::get('/', [ContactController::class, 'index'])->name('index');
+    Route::post('/', [ContactController::class, 'store'])->name('store');
+});
+
+// About
+Route::get('/sobre', [AboutController::class, 'index'])->name('about.index');
 
 // Admin
 Route::prefix('admin/import')->name('import.')->group(function () {
