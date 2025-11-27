@@ -142,7 +142,6 @@ class OpenAIService
                             ],
                             
                         ],
-                        'max_completion_tokens' => $maxTokens,
                     ]);
 
                 if ($response->successful()) {

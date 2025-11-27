@@ -52,7 +52,7 @@ class PromptBuilder
         $categories = $bookData['final_categories'] ?? [];
         $tags = $bookData['final_tags'] ?? [];
 
-        $prompt = "Você é um especialista em literatura. Crie uma descrição completa e detalhada em português brasileiro para o seguinte livro:\n\n";
+        $prompt = "Você é um especialista em literatura. Crie uma descrição completa (MÁXIMO 1500 caracteres) e detalhada em português brasileiro para o seguinte livro:\n\n";
         $prompt .= "Título: {$title}\n";
         $prompt .= "Autor(es): {$authors}{$yearText}\n";
 
@@ -67,7 +67,7 @@ class PromptBuilder
         $prompt .= "\n";
 
         if (!empty($sources)) {
-            $prompt .= "Informações coletadas de diferentes fontes:\n\n";
+            $prompt .= ".\nInformações coletadas de diferentes fontes:\n\n";
             foreach ($sources as $source => $description) {
                 $prompt .= "Fonte: {$source}\n";
                 $prompt .= "{$description}\n\n";
@@ -97,7 +97,7 @@ class PromptBuilder
 
         $sources = $this->collectBiographySources($authorData);
 
-        $prompt = "Você é um especialista em biografias literárias. Crie uma biografia completa e detalhada em português brasileiro para o seguinte autor:\n\n";
+        $prompt = "Você é um especialista em biografias literárias. Crie uma biografia completa (MÁXIMO 1500 caracteres) e detalhada em português brasileiro para o seguinte autor:\n\n";
         $prompt .= "Nome: {$fullName}\n";
 
         if ($birthDate) {

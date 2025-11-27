@@ -33,9 +33,9 @@ return [
     */
 
     'max_completion_tokens' => [
-        'synopsis' => env('OPENAI_MAX_COMPLETION_TOKENS_SYNOPSIS', 200),
-        'description' => env('OPENAI_MAX_COMPLETION_TOKENS_DESCRIPTION', 1000),
-        'biography' => env('OPENAI_MAX_COMPLETION_TOKENS_BIOGRAPHY', 1000),
+        'synopsis' => env('OPENAI_MAX_COMPLETION_TOKENS_SYNOPSIS', 600),
+        'description' => env('OPENAI_MAX_COMPLETION_TOKENS_DESCRIPTION', 2500),
+        'biography' => env('OPENAI_MAX_COMPLETION_TOKENS_BIOGRAPHY', 2500),
     ],
 
 
