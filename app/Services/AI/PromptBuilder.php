@@ -127,7 +127,54 @@ class PromptBuilder
         $prompt .= "- Use linguagem clara e biográfica\n";
         $prompt .= "- Destaque aspectos importantes da vida e obra do autor\n";
         $prompt .= "- Mantenha tom profissional e informativo\n";
-        $prompt .= "- Responda APENAS com a biografia, sem explicações adicionais\n";
+        return $prompt;
+    }
+
+    /**
+     * Constrói prompt para gerar descrição e sinopse em JSON
+     */
+    public function buildContentPrompt(array $bookData): string
+    {
+        $title = $bookData['title'] ?? 'Livro';
+        $authors = $this->formatAuthors($bookData['authors'] ?? []);
+        $year = $bookData['first_publish_year'] ?? null;
+        $yearText = $year ? " ({$year})" : '';
+
+        $sources = $this->collectDescriptionSources($bookData);
+        $categories = $bookData['final_categories'] ?? [];
+        $tags = $bookData['final_tags'] ?? [];
+
+        $prompt = "Você é um especialista em literatura. Analise os dados do livro abaixo e gere uma descrição completa e uma sinopse curta em português brasileiro.\n\n";
+        $prompt .= "Título: {$title}\n";
+        $prompt .= "Autor(es): {$authors}{$yearText}\n";
+
+        if (!empty($categories)) {
+            $prompt .= "Categorias: " . implode(', ', $categories) . "\n";
+        }
+
+        if (!empty($tags)) {
+            $prompt .= "Tags: " . implode(', ', $tags) . "\n";
+        }
+
+        $prompt .= "\n";
+
+        if (!empty($sources)) {
+            $prompt .= "Informações coletadas de diferentes fontes:\n\n";
+            foreach ($sources as $source => $description) {
+                $prompt .= "Fonte: {$source}\n";
+                $prompt .= "{$description}\n\n";
+            }
+        }
+
+        $prompt .= "Instruções:\n";
+        $prompt .= "1. Crie uma descrição completa, detalhada, profissional e acadêmica.\n";
+        $prompt .= "2. Crie uma sinopse curta, atrativa e envolvente.\n";
+        $prompt .= "3. Responda APENAS um objeto JSON válido com as chaves 'description' e 'synopsis'.\n";
+        $prompt .= "Exemplo de formato:\n";
+        $prompt .= "{\n";
+        $prompt .= "  \"description\": \"Texto da descrição...\",\n";
+        $prompt .= "  \"synopsis\": \"Texto da sinopse...\"\n";
+        $prompt .= "}\n";
 
         return $prompt;
     }

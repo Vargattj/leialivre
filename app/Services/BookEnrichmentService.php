@@ -12,8 +12,7 @@ use App\Services\BookMatching\OpenLibraryMatcher;
 use App\Services\BookConsolidation\CategoryConsolidator;
 use App\Services\BookConsolidation\TagConsolidator;
 use App\Services\BookConsolidation\DescriptionConsolidator;
-use App\Services\BookConsolidation\AIDescriptionConsolidator;
-use App\Services\BookConsolidation\AISynopsisGenerator;
+use App\Services\BookConsolidation\AIContentConsolidator;
 use App\Services\BookImport\BookImporter;
 use App\Models\Book;
 use Illuminate\Support\Facades\Log;
@@ -28,8 +27,7 @@ class BookEnrichmentService
     private CategoryConsolidator $categoryConsolidator;
     private TagConsolidator $tagConsolidator;
     private DescriptionConsolidator $descriptionConsolidator;
-    private AIDescriptionConsolidator $aiDescriptionConsolidator;
-    private AISynopsisGenerator $aiSynopsisGenerator;
+    private AIContentConsolidator $aiContentConsolidator;
     private BookImporter $bookImporter;
 
     public function __construct(
@@ -41,8 +39,7 @@ class BookEnrichmentService
         ?CategoryConsolidator $categoryConsolidator = null,
         ?TagConsolidator $tagConsolidator = null,
         ?DescriptionConsolidator $descriptionConsolidator = null,
-        ?AIDescriptionConsolidator $aiDescriptionConsolidator = null,
-        ?AISynopsisGenerator $aiSynopsisGenerator = null,
+        ?AIContentConsolidator $aiContentConsolidator = null,
         ?BookImporter $bookImporter = null
     ) {
         $this->gutendexSource = $gutendexSource ?? new GutendexDataSource();
@@ -53,8 +50,7 @@ class BookEnrichmentService
         $this->categoryConsolidator = $categoryConsolidator ?? new CategoryConsolidator();
         $this->tagConsolidator = $tagConsolidator ?? new TagConsolidator();
         $this->descriptionConsolidator = $descriptionConsolidator ?? new DescriptionConsolidator();
-        $this->aiDescriptionConsolidator = $aiDescriptionConsolidator ?? new AIDescriptionConsolidator();
-        $this->aiSynopsisGenerator = $aiSynopsisGenerator ?? new AISynopsisGenerator();
+        $this->aiContentConsolidator = $aiContentConsolidator ?? new AIContentConsolidator();
         $this->bookImporter = $bookImporter ?? new BookImporter();
     }
 
@@ -263,41 +259,37 @@ class BookEnrichmentService
         
         // 5. Enriquecimento com IA (se habilitado)
         try {
-            $aiDescription = $this->aiDescriptionConsolidator->consolidateWithAI($enrichedData);
-            if (!empty($aiDescription) && trim($aiDescription) !== trim($enrichedData['final_description_pt'])) {
-                $enrichedData['final_description_pt'] = trim($aiDescription);
-                $enrichedData['final_description_ai'] = trim($aiDescription);
-                $enrichedData['use_ai'] = true;
-                Log::info('Description enriched with AI', [
-                    'title' => $enrichedData['title'] ?? 'Unknown',
-                    'description_length' => strlen($aiDescription),
-                ]);
+            $aiContent = $this->aiContentConsolidator->consolidate($enrichedData);
+            
+            // Descrição
+            if (!empty($aiContent['description']) && trim($aiContent['description']) !== trim($enrichedData['final_description_pt'])) {
+                $enrichedData['final_description_pt'] = trim($aiContent['description']);
+                $enrichedData['final_description_ai'] = trim($aiContent['description']);
+                $enrichedData['use_ai'] = $aiContent['used_ai'] ?? false;
+                
+                if ($enrichedData['use_ai']) {
+                    Log::info('Description enriched with AI', [
+                        'title' => $enrichedData['title'] ?? 'Unknown',
+                        'description_length' => strlen($aiContent['description']),
+                    ]);
+                }
             } else {
                 Log::debug('AI description same as fallback or empty, keeping fallback', [
                     'title' => $enrichedData['title'] ?? 'Unknown',
                 ]);
                 $enrichedData['use_ai'] = false;
             }
-        } catch (\Exception $e) {
-            Log::warning('Failed to enrich description with AI, using fallback', [
-                'error' => $e->getMessage(),
-                'title' => $enrichedData['title'] ?? 'Unknown',
-            ]);
-            $enrichedData['use_ai'] = false;
-        }
-        
-        // Gerar sinopse com IA (se habilitado)
-        try {
-            $aiSynopsis = $this->aiSynopsisGenerator->generate(
-                $enrichedData,
-                $enrichedData['final_description_pt']
-            );
-            if (!empty($aiSynopsis)) {
-                $enrichedData['final_synopsis'] = trim($aiSynopsis);
-                Log::info('Synopsis generated with AI', [
-                    'title' => $enrichedData['title'] ?? 'Unknown',
-                    'synopsis_length' => strlen($aiSynopsis),
-                ]);
+
+            // Sinopse
+            if (!empty($aiContent['synopsis'])) {
+                $enrichedData['final_synopsis'] = trim($aiContent['synopsis']);
+                
+                if ($aiContent['used_ai'] ?? false) {
+                    Log::info('Synopsis generated with AI', [
+                        'title' => $enrichedData['title'] ?? 'Unknown',
+                        'synopsis_length' => strlen($aiContent['synopsis']),
+                    ]);
+                }
             } else {
                 // Fallback: truncar descrição
                 $enrichedData['final_synopsis'] = \Illuminate\Support\Str::limit(
@@ -306,12 +298,15 @@ class BookEnrichmentService
                 );
                 Log::debug('AI synopsis empty, using fallback truncation');
             }
+
         } catch (\Exception $e) {
-            Log::warning('Failed to generate synopsis with AI, using fallback', [
+            Log::warning('Failed to enrich content with AI, using fallback', [
                 'error' => $e->getMessage(),
                 'title' => $enrichedData['title'] ?? 'Unknown',
             ]);
-            // Fallback: truncar descrição
+            $enrichedData['use_ai'] = false;
+            
+            // Fallback sinopse
             $enrichedData['final_synopsis'] = \Illuminate\Support\Str::limit(
                 $enrichedData['final_description_pt'],
                 500

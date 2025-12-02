@@ -119,6 +119,39 @@ class OpenAIService
     }
 
     /**
+     * Gera conteúdo estruturado (descrição e sinopse) em JSON
+     */
+    public function generateContent(string $prompt, ?string $cacheKey = null): ?array
+    {
+        $maxTokens = config('openai.max_completion_tokens.content', 2000);
+        
+        // Adicionar instrução para JSON mode se o modelo suportar, ou apenas confiar no prompt
+        // Para simplificar e manter compatibilidade, vamos confiar no prompt e fazer parse manual
+        
+        $response = $this->enrichText($prompt, $maxTokens, $cacheKey);
+
+        if ($response === null) {
+            return null;
+        }
+
+        // Tentar limpar o response para extrair JSON
+        $jsonStart = strpos($response, '{');
+        $jsonEnd = strrpos($response, '}');
+
+        if ($jsonStart !== false && $jsonEnd !== false) {
+            $jsonStr = substr($response, $jsonStart, $jsonEnd - $jsonStart + 1);
+            $data = json_decode($jsonStr, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && isset($data['description'], $data['synopsis'])) {
+                return $data;
+            }
+        }
+
+        Log::warning('OpenAI response was not valid JSON', ['response' => $response]);
+        return null;
+    }
+
+    /**
      * Faz requisição para API OpenAI com retry logic
      */
     private function makeRequest(string $prompt, int $maxTokens): ?string
