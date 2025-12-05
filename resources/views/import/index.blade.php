@@ -3,7 +3,7 @@
 <!-- ============================================ -->
 <!-- resources/views/import/index.blade.php -->
 <!-- ============================================ -->
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Import Books')
 

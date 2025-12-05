@@ -6,6 +6,8 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\Admin\LoginController;
+use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -43,11 +45,27 @@ Route::prefix('contato')->name('contact.')->group(function () {
 // About
 Route::get('/sobre', [AboutController::class, 'index'])->name('about.index');
 
-// Admin
-Route::prefix('admin/import')->name('import.')->group(function () {
-    Route::get('/', [ImportController::class, 'index'])->name('index');
-    Route::post('/search/openlibrary', [ImportController::class, 'searchOpenLibrary'])->name('search.openlibrary');
-    Route::post('/search/gutenberg', [ImportController::class, 'searchGutenberg'])->name('search.gutenberg');
-    Route::post('/import', [ImportController::class, 'import'])->name('do');
+// Admin Auth
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.do');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+});
+
+// Admin Protected Routes
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Resources
+    Route::resource('authors', App\Http\Controllers\Admin\AuthorController::class);
+    Route::resource('books', App\Http\Controllers\Admin\BookController::class);
+
+    // Import (Moved from public scope)
+    Route::prefix('import')->name('import.')->group(function () {
+        Route::get('/', [ImportController::class, 'index'])->name('index');
+        Route::post('/search/openlibrary', [ImportController::class, 'searchOpenLibrary'])->name('search.openlibrary');
+        Route::post('/search/gutenberg', [ImportController::class, 'searchGutenberg'])->name('search.gutenberg');
+        Route::post('/import', [ImportController::class, 'import'])->name('do');
+    });
 });
 

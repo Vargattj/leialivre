@@ -118,8 +118,12 @@ class Book extends Model
     {
         return $this->belongsToMany(Category::class, 'book_category')
             ->wherePivot('is_primary', true)
-            ->withTimestamps()
-            ->first();
+            ->withTimestamps();
+    }
+
+    public function getPrimaryCategoryAttribute()
+    {
+        return $this->categories()->wherePivot('is_primary', true)->first();
     }
 
     public function tags()
