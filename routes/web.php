@@ -6,6 +6,8 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\RobotsController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
@@ -44,6 +46,12 @@ Route::prefix('contato')->name('contact.')->group(function () {
 
 // About
 Route::get('/sobre', [AboutController::class, 'index'])->name('about.index');
+
+// Sitemap
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+
+// Robots.txt (dynamic)
+Route::get('/robots.txt', [RobotsController::class, 'index'])->name('robots');
 
 // Admin Auth
 Route::prefix('admin')->name('admin.')->group(function () {

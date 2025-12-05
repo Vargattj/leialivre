@@ -3,7 +3,14 @@
 <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center">
     <div class="mb-6">
         @if($author->photo_url)
-            <img alt="{{ $author->name }}" class="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg" src="{{ $author->photo_url }}">
+            <img 
+                alt="{{ $author->name }} - Foto do autor{{ $author->nationality ? ' (' . $author->nationality . ')' : '' }}" 
+                class="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg" 
+                src="{{ $author->photo_url }}"
+                loading="lazy"
+                width="128"
+                height="128"
+            >
         @else
             <div class="w-32 h-32 rounded-full mx-auto mb-4 bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 flex items-center justify-center shadow-lg">
                 <i class="ri-user-line text-5xl text-[#004D40] opacity-50"></i>

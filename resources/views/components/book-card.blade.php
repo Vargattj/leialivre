@@ -4,7 +4,14 @@
     <div class="flex flex-col h-full">
         <div class="flex gap-4 mb-4">
             @if($book->cover_thumbnail_url || $book->cover_url)
-                <img alt="{{ $book->title }}" class="w-24 h-36 object-cover rounded-lg shadow-md" src="{{ $book->cover_thumbnail_url ?? $book->cover_url }}">
+                <img 
+                    alt="{{ $book->title }} - Capa do livro{{ $book->mainAuthors->count() > 0 ? ' de ' . $book->mainAuthors->first()->name : '' }}" 
+                    class="w-24 h-36 object-cover rounded-lg shadow-md" 
+                    src="{{ $book->cover_thumbnail_url ?? $book->cover_url }}"
+                    loading="lazy"
+                    width="96"
+                    height="144"
+                >
             @else
                 <div class="w-24 h-36 bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 rounded-lg flex items-center justify-center">
                     <span class="text-4xl opacity-50">📚</span>

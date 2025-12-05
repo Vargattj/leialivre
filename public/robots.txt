@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /download/
+
+# Sitemap
+Sitemap: https://leialivre.test/sitemap.xml
+
+# Crawl-delay (optional, adjust as needed)
+# Crawl-delay: 10
