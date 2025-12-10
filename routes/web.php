@@ -67,6 +67,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Resources
     Route::resource('authors', App\Http\Controllers\Admin\AuthorController::class);
     Route::resource('books', App\Http\Controllers\Admin\BookController::class);
+    Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
 
     // Import (Moved from public scope)
     Route::prefix('import')->name('import.')->group(function () {

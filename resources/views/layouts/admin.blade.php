@@ -50,6 +50,12 @@
                     <span class="mx-3">Livros</span>
                 </a>
 
+                <a href="{{ route('admin.categories.index') }}" 
+                   class="flex items-center px-6 py-2 mt-4 text-gray-100 {{ request()->routeIs('admin.categories.*') ? 'bg-gray-700 bg-opacity-25 border-l-4 border-blue-500' : 'hover:bg-gray-700 hover:bg-opacity-25 hover:text-gray-100' }}">
+                    <i class="ri-folder-line text-xl"></i>
+                    <span class="mx-3">Categorias</span>
+                </a>
+
                 <a href="{{ route('admin.import.index') }}" 
                    class="flex items-center px-6 py-2 mt-4 text-gray-100 {{ request()->routeIs('admin.import.*') ? 'bg-gray-700 bg-opacity-25 border-l-4 border-blue-500' : 'hover:bg-gray-700 hover:bg-opacity-25 hover:text-gray-100' }}">
                     <i class="ri-download-cloud-2-line text-xl"></i>

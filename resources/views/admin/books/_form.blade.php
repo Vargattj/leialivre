@@ -22,8 +22,57 @@
     </div>
 
     <!-- Autores -->
-    <div class="col-span-2 md:col-span-1">
-        <label for="authors" class="block text-sm font-medium text-gray-700">Autores</label>
+    <div class="col-span-2 md:col-span-1" x-data="{ 
+        showAuthorModal: false, 
+        newAuthorName: '',
+        newAuthorNationality: '',
+        isCreatingAuthor: false,
+        async createAuthor() {
+            if (!this.newAuthorName) return;
+            this.isCreatingAuthor = true;
+            
+            try {
+                const response = await fetch('{{ route('admin.authors.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: this.newAuthorName,
+                        nationality: this.newAuthorNationality
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const select = document.getElementById('authors');
+                    const option = new Option(data.author.name, data.author.id, true, true);
+                    select.add(option);
+                    
+                    this.newAuthorName = '';
+                    this.newAuthorNationality = '';
+                    this.showAuthorModal = false;
+                    
+                    alert('Autor criado com sucesso!');
+                } else {
+                    alert(data.message || 'Erro ao criar autor');
+                }
+            } catch (error) {
+                alert('Erro ao criar autor: ' + error.message);
+            } finally {
+                this.isCreatingAuthor = false;
+            }
+        }
+    }">
+        <div class="flex items-center justify-between">
+            <label for="authors" class="block text-sm font-medium text-gray-700">Autores</label>
+            <button type="button" @click="showAuthorModal = true" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center">
+                <i class="ri-add-circle-line mr-1"></i> Novo Autor
+            </button>
+        </div>
         <select name="authors[]" id="authors" multiple required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2 h-32">
             @foreach($authors as $author)
                 <option value="{{ $author->id }}" 
@@ -33,11 +82,103 @@
             @endforeach
         </select>
         <p class="text-xs text-gray-500 mt-1">Segure Ctrl (Windows) ou Cmd (Mac) para selecionar vários.</p>
+
+        <!-- Modal Autor -->
+        <div x-show="showAuthorModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="showAuthorModal" @click="showAuthorModal = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="showAuthorModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                                    Novo Autor
+                                </h3>
+                                <div class="mt-2 space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Nome do Autor</label>
+                                        <input type="text" x-model="newAuthorName" @keydown.enter.prevent="createAuthor()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" placeholder="Ex: Machado de Assis">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Nacionalidade (opcional)</label>
+                                        <input type="text" x-model="newAuthorNationality" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" placeholder="Ex: Brasil">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button" @click="createAuthor()" :disabled="isCreatingAuthor || !newAuthorName" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!isCreatingAuthor">Criar</span>
+                            <span x-show="isCreatingAuthor">Criando...</span>
+                        </button>
+                        <button type="button" @click="showAuthorModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Categorias -->
-    <div class="col-span-2 md:col-span-1">
-        <label for="categories" class="block text-sm font-medium text-gray-700">Categorias</label>
+    <div class="col-span-2 md:col-span-1" x-data="{ 
+        showModal: false, 
+        newCategoryName: '', 
+        newCategoryDescription: '',
+        isCreating: false,
+        async createCategory() {
+            if (!this.newCategoryName) return;
+            this.isCreating = true;
+            
+            try {
+                const response = await fetch('{{ route('admin.categories.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: this.newCategoryName,
+                        description: this.newCategoryDescription
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Adicionar nova categoria ao select
+                    const select = document.getElementById('categories');
+                    const option = new Option(data.category.name, data.category.id, true, true);
+                    select.add(option);
+                    
+                    // Limpar e fechar modal
+                    this.newCategoryName = '';
+                    this.newCategoryDescription = '';
+                    this.showModal = false;
+                    
+                    // Mostrar mensagem de sucesso
+                    alert('Categoria criada com sucesso!');
+                } else {
+                    alert(data.message || 'Erro ao criar categoria');
+                }
+            } catch (error) {
+                alert('Erro ao criar categoria: ' + error.message);
+            } finally {
+                this.isCreating = false;
+            }
+        }
+    }">
+        <div class="flex items-center justify-between">
+            <label for="categories" class="block text-sm font-medium text-gray-700">Categorias</label>
+            <button type="button" @click="showModal = true" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center">
+                <i class="ri-add-circle-line mr-1"></i> Nova Categoria
+            </button>
+        </div>
         <select name="categories[]" id="categories" multiple required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2 h-32">
             @foreach($categories as $category)
                 <option value="{{ $category->id }}"
@@ -47,6 +188,46 @@
             @endforeach
         </select>
         <p class="text-xs text-gray-500 mt-1">A primeira selecionada será a categoria principal.</p>
+
+        <!-- Modal -->
+        <div x-show="showModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div x-show="showModal" @click="showModal = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+                <div x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+                                    Nova Categoria
+                                </h3>
+                                <div class="mt-2 space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Nome da Categoria</label>
+                                        <input type="text" x-model="newCategoryName" @keydown.enter.prevent="createCategory()" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2" placeholder="Ex: Romance">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Descrição (opcional)</label>
+                                        <textarea x-model="newCategoryDescription" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button" @click="createCategory()" :disabled="isCreating || !newCategoryName" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span x-show="!isCreating">Criar</span>
+                            <span x-show="isCreating">Criando...</span>
+                        </button>
+                        <button type="button" @click="showModal = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Sinopse -->
