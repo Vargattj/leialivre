@@ -19,7 +19,7 @@
                     @if (isset($category))
                         <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ $category->name }}</h1>
                         <p class="text-xl text-white/90 max-w-3xl mx-auto">
-                            Explore nossa coleção de livros em {{ $category->name }} disponíveis gratuitamente
+                            Explore nossa coleção de livros de {{ $category->name }} gratuitos
                         </p>
                     @elseif(isset($term))
                         <h1 class="text-4xl md:text-5xl font-bold mb-4">Resultados da Busca</h1>
@@ -52,16 +52,21 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <nav class="flex items-center space-x-2 text-sm text-gray-600">
                 <a href="{{ route('home') }}" class="hover:text-[#004D40] transition-colors">Início</a>
-                <i class="ri-arrow-right-s-line"></i>
-                <span class="text-[#004D40] font-medium">
-                    @if (isset($category))
-                        {{ $category->name }}
-                    @elseif(isset($term))
-                        Busca
-                    @else
-                        Livros
-                    @endif
-                </span>
+                
+                @if (isset($category))
+                    <i class="ri-arrow-right-s-line"></i>
+                    <a href="{{ route('categorias.index') }}" class="hover:text-[#004D40] transition-colors">Categorias</a>
+                    <i class="ri-arrow-right-s-line"></i>
+                    <span class="text-[#004D40] font-medium">{{ $category->name }}</span>
+                @elseif(isset($term))
+                    <i class="ri-arrow-right-s-line"></i>
+                    <a href="{{ route('livros.index') }}" class="hover:text-[#004D40] transition-colors">Livros</a>
+                    <i class="ri-arrow-right-s-line"></i>
+                    <span class="text-[#004D40] font-medium">Busca: "{{ $term }}"</span>
+                @else
+                    <i class="ri-arrow-right-s-line"></i>
+                    <span class="text-[#004D40] font-medium">Livros</span>
+                @endif
             </nav>
         </div>
 

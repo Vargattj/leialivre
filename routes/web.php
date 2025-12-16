@@ -32,6 +32,9 @@ Route::prefix('autores')->name('autores.')->group(function () {
     Route::get('/{slug}', [AuthorController::class, 'show'])->name('show');
 });
 
+// Categories
+Route::get('/categorias', [App\Http\Controllers\CategoryController::class, 'index'])->name('categorias.index');
+
 // Downloads
 Route::prefix('download')->name('download.')->group(function () {
     Route::get('/{id}', [DownloadController::class, 'download'])->name('file');
@@ -77,4 +80,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/import', [ImportController::class, 'import'])->name('do');
     });
 });
+
+
 

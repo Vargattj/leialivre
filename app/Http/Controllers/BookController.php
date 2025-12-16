@@ -273,6 +273,26 @@ class BookController extends Controller
                 return $author;
             });
 
-        return view('welcome', compact('featuredBooks', 'featuredAuthors'));
+        // Calculate stats for home page
+        $totalBooks = Book::active()->count();
+        $totalAuthors = Author::whereHas('books', function($q) {
+            $q->active();
+        })->distinct()->count();
+        $totalCategories = Category::whereHas('books', function($q) {
+            $q->active();
+        })->distinct()->count();
+
+        // Get popular categories for search tags and explore section
+        $popularCategories = Category::whereHas('books', function($q) {
+                $q->active();
+            })
+            ->withCount(['books' => function($query) {
+                $query->active();
+            }])
+            ->orderBy('books_count', 'desc')
+            ->take(8)
+            ->get();
+
+        return view('welcome', compact('featuredBooks', 'featuredAuthors', 'totalBooks', 'totalAuthors', 'totalCategories', 'popularCategories'));
     }
 }

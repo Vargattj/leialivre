@@ -3,9 +3,8 @@
         <div class="flex items-center justify-between h-16">
             <nav class="hidden md:flex items-center space-x-6 w-1/3">
                 <a href="{{ route('livros.index') }}" class="text-[#333333] hover:text-[#004D40] font-medium transition-colors">Explorar</a>
-                <a href="/categories" class="text-[#333333] hover:text-[#004D40] font-medium transition-colors">Categorias</a>
+                <a href="{{ route('categorias.index') }}" class="text-[#333333] hover:text-[#004D40] font-medium transition-colors">Categorias</a>
                 <a href="{{ route('autores.index') }}" class="text-[#333333] hover:text-[#004D40] font-medium transition-colors">Autores</a>
-                <a href="#" class="text-[#333333] hover:text-[#004D40] font-medium transition-colors">Coleções</a>
                 {{-- <button class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#004D40] text-white hover:bg-[#00695C] focus:ring-2 focus:ring-[#004D40]/20 px-3 py-1.5 text-sm rounded-md">
                     <i class="ri-bookmark-line mr-2"></i>Minha Biblioteca
                 </button> --}}

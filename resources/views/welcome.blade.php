@@ -44,7 +44,7 @@
                 <span class="block text-[#B8860B] mt-2">Tesouros Literários</span>
             </h1>
             <p class="text-lg md:text-xl text-gray-600 mb-12 leading-relaxed max-w-3xl mx-auto">
-                Explore milhares de livros em domínio público com rico contexto histórico, biografias detalhadas de autores e múltiplos formatos de download. Sua porta de entrada para a literatura atemporal.
+                Explore milhares de livros em domínio público com rico contexto histórico, biografias detalhadas de autores e múltiplos formatos de download.
             </p>
             
             <div class="mb-12">
@@ -69,15 +69,14 @@
                 </form>
                 <div class="mt-6 flex flex-wrap justify-center gap-3">
                     <span class="text-sm text-gray-500">Buscas populares:</span>
-                    <a href="{{ route('livros.buscar', ['q' => 'Shakespeare']) }}" class="text-sm text-[#004D40] hover:text-[#B8860B] font-medium transition-colors cursor-pointer">Shakespeare</a>
-                    <a href="{{ route('livros.buscar', ['q' => 'Machado de Assis']) }}" class="text-sm text-[#004D40] hover:text-[#B8860B] font-medium transition-colors cursor-pointer">Machado de Assis</a>
-                    <a href="{{ route('livros.buscar', ['q' => 'Literatura Clássica']) }}" class="text-sm text-[#004D40] hover:text-[#B8860B] font-medium transition-colors cursor-pointer">Literatura Clássica</a>
-                    <a href="{{ route('livros.buscar', ['q' => 'Poesia']) }}" class="text-sm text-[#004D40] hover:text-[#B8860B] font-medium transition-colors cursor-pointer">Poesia</a>
+                    @foreach($popularCategories->take(5) as $category)
+                        <a href="{{ route('livros.categorias', $category->slug) }}" class="text-sm text-[#004D40] hover:text-[#B8860B] font-medium transition-colors cursor-pointer">{{ $category->name }}</a>
+                    @endforeach
                 </div>
             </div>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-                <a href="/categories" class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#B8860B] text-white hover:bg-[#DAA520] focus:ring-2 focus:ring-[#B8860B]/20 px-6 py-3 text-lg rounded-lg min-w-[200px]">
+                <a href="{{ route('categorias.index') }}" class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#B8860B] text-white hover:bg-[#DAA520] focus:ring-2 focus:ring-[#B8860B]/20 px-6 py-3 text-lg rounded-lg min-w-[200px]">
                     <i class="ri-grid-line mr-2"></i>Explorar Categorias
                 </a>
                 <a href="{{ route('autores.index') }}" class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap border-2 border-[#004D40] text-[#004D40] hover:bg-[#004D40] hover:text-white px-6 py-3 text-lg rounded-lg min-w-[200px]">
@@ -87,19 +86,19 @@
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                    <div class="text-3xl font-bold text-[#B8860B] mb-2">15.000+</div>
+                    <div class="text-3xl font-bold text-[#B8860B] mb-2">+{{ number_format($totalBooks, 0, ',', '.') }}</div>
                     <div class="text-lg text-gray-600">Livros Gratuitos</div>
                     <div class="text-sm text-gray-500 mt-1">Disponíveis para download</div>
                 </div>
                 <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                    <div class="text-3xl font-bold text-[#B8860B] mb-2">2.500+</div>
+                    <div class="text-3xl font-bold text-[#B8860B] mb-2">+{{ number_format($totalAuthors, 0, ',', '.') }}</div>
                     <div class="text-lg text-gray-600">Autores</div>
                     <div class="text-sm text-gray-500 mt-1">De todo o mundo</div>
                 </div>
                 <div class="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                    <div class="text-3xl font-bold text-[#B8860B] mb-2">50+</div>
-                    <div class="text-lg text-gray-600">Idiomas</div>
-                    <div class="text-sm text-gray-500 mt-1">Múltiplos formatos</div>
+                    <div class="text-3xl font-bold text-[#B8860B] mb-2">+{{ number_format($totalCategories, 0, ',', '.') }}</div>
+                    <div class="text-lg text-gray-600">Categorias</div>
+                    <div class="text-sm text-gray-500 mt-1">Para diferentes gostos</div>
                 </div>
             </div>
         </div>
@@ -140,62 +139,28 @@
             </p>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group">
+            @php
+                $icons = [
+                    'ri-book-open-line',
+                    'ri-search-eye-line',
+                    'ri-heart-line',
+                    'ri-compass-line',
+                    'ri-rocket-line',
+                    'ri-lightbulb-line',
+                    'ri-time-line',
+                    'ri-quill-pen-line'
+                ];
+            @endphp
+            
+            @foreach($popularCategories as $category)
+            <a href="{{ route('livros.categorias', $category->slug) }}" class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group block">
                 <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#004D40]/20 transition-colors">
-                    <i class="ri-book-open-line text-2xl text-[#004D40]"></i>
+                    <i class="{{ $icons[$loop->index % count($icons)] }} text-2xl text-[#004D40]"></i>
                 </div>
-                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">Literatura Clássica</h3>
-                <p class="text-[#B8860B] font-medium">1.250 livros</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#004D40]/20 transition-colors">
-                    <i class="ri-search-eye-line text-2xl text-[#004D40]"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">Mistério &amp; Detetive</h3>
-                <p class="text-[#B8860B] font-medium">890 livros</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#004D40]/20 transition-colors">
-                    <i class="ri-heart-line text-2xl text-[#004D40]"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">Romance</h3>
-                <p class="text-[#B8860B] font-medium">760 livros</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#004D40]/20 transition-colors">
-                    <i class="ri-compass-line text-2xl text-[#004D40]"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">Aventura</h3>
-                <p class="text-[#B8860B] font-medium">650 livros</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#004D40]/20 transition-colors">
-                    <i class="ri-rocket-line text-2xl text-[#004D40]"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">Ficção Científica</h3>
-                <p class="text-[#B8860B] font-medium">420 livros</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#004D40]/20 transition-colors">
-                    <i class="ri-lightbulb-line text-2xl text-[#004D40]"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">Filosofia</h3>
-                <p class="text-[#B8860B] font-medium">380 livros</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#004D40]/20 transition-colors">
-                    <i class="ri-time-line text-2xl text-[#004D40]"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">História</h3>
-                <p class="text-[#B8860B] font-medium">340 livros</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 text-center cursor-pointer group">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#004D40]/20 transition-colors">
-                    <i class="ri-quill-pen-line text-2xl text-[#004D40]"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">Poesia</h3>
-                <p class="text-[#B8860B] font-medium">290 livros</p>
-            </div>
+                <h3 class="text-lg font-semibold text-[#333333] mb-2 group-hover:text-[#004D40] transition-colors">{{ $category->name }}</h3>
+                <p class="text-[#B8860B] font-medium">{{ number_format($category->books_count, 0, ',', '.') }} livros</p>
+            </a>
+            @endforeach
         </div>
     </div>
 </section>
