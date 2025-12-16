@@ -25,27 +25,19 @@
                     <li><a href="{{ route('livros.index') }}" class="text-gray-300 hover:text-white transition-colors">Explorar Livros</a></li>
                     <li><a href="{{ route('autores.index') }}" class="text-gray-300 hover:text-white transition-colors">Autores Populares</a></li>
                     <li><a href="{{ route('livros.mais-baixados') }}" class="text-gray-300 hover:text-white transition-colors">Novos Lançamentos</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Coleções</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Livro Aleatório</a></li>
                 </ul>
             </div>
             <div>
                 <h4 class="font-semibold mb-4">Recursos</h4>
                 <ul class="space-y-2">
                     <li><a href="{{ route('about.index') }}" class="text-gray-300 hover:text-white transition-colors">Sobre</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Sobre Domínio Público</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Formatos de Download</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Guia de Leitura</a></li>
-                    <li><a href="#" class="text-gray-300 hover:text-white transition-colors">Documentação da API</a></li>
                     <li><a href="{{ route('contact.index') }}" class="text-gray-300 hover:text-white transition-colors">Contato</a></li>
                 </ul>
             </div>
         </div>
         <div class="border-t border-gray-600 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p class="text-gray-300 text-sm">© {{ date('Y') }} Leia Livre. Todo o conteúdo em domínio público está disponível gratuitamente para todos.</p>
-            <div class="mt-4 md:mt-0">
-                <a href="https://readdy.ai/?origin=logo" class="text-gray-300 hover:text-white text-sm transition-colors" rel="nofollow">Website Builder</a>
-            </div>
+
         </div>
     </div>
 </footer>
