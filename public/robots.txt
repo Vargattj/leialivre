@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /download/
-
+Disallow: *
 # Sitemap
 Sitemap: https://leialivre.test/sitemap.xml
 
