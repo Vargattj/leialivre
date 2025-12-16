@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'admin' => [
+        'email' => env('ADMIN_EMAIL', 'admin@leialivre.com'),
+        'password' => env('ADMIN_PASSWORD', 'password'),
+    ],
+
 ];
