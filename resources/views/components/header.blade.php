@@ -14,7 +14,7 @@
                     <i class="ri-menu-line text-xl"></i>
                 </button>
             </div>
-            <div class="flex items-center ml-auto">
+            <div class="flex items-center ml-auto w-full justify-center">
                 <a href="/">
                     <h1 class="w-36 mb-2" style="font-family: Pacifico, serif;">
                         <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
