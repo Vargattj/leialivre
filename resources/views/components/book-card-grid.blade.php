@@ -6,7 +6,7 @@
         @if($book->cover_thumbnail_url || $book->cover_url)
             <img 
                 alt="{{ $book->title }}" 
-                class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300" 
+                class="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-300" 
                 src="{{ $book->cover_thumbnail_url ?? $book->cover_url }}"
             >
         @else

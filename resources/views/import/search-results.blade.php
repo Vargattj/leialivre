@@ -33,13 +33,13 @@
                 <img 
                     src="https://covers.openlibrary.org/b/id/{{ $book['cover_i'] }}-M.jpg" 
                     alt="Cover"
-                    class="w-24 h-36 object-cover rounded"
+                    class="w-24 h-36 object-contain rounded"
                 >
                 @elseif($source === 'gutenberg' && isset($book['formats']['image/jpeg']))
                 <img 
                     src="{{ $book['formats']['image/jpeg'] }}" 
                     alt="Cover"
-                    class="w-24 h-36 object-cover rounded"
+                    class="w-24 h-36 object-contain rounded"
                 >
                 @else
                 <div class="w-24 h-36 bg-gray-200 rounded flex items-center justify-center">

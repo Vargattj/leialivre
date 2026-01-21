@@ -213,7 +213,7 @@
                 </div>
                 <h3 class="text-xl font-bold text-[#333333] mb-4 group-hover:text-[#004D40] transition-colors">Informações Ricas sobre Autores</h3>
                 <p class="text-gray-600 leading-relaxed">
-                    Descubra biografias detalhadas, contexto histórico e bibliografias completas de milhares de autores de todo o mundo.
+                    Descubra biografias detalhadas, contexto histórico e bibliografias completas.
                 </p>
             </div>
             <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 text-center group hover:shadow-lg transition-all duration-300">
@@ -225,24 +225,8 @@
                     Encontre livros por título, autor, gênero, ano de publicação ou até mesmo temas específicos. Nossa poderosa busca ajuda você a descobrir novos favoritos.
                 </p>
             </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 text-center group hover:shadow-lg transition-all duration-300">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-[#004D40] group-hover:text-white transition-all duration-300">
-                    <i class="ri-bookmark-line text-2xl text-[#004D40] group-hover:text-white"></i>
-                </div>
-                <h3 class="text-xl font-bold text-[#333333] mb-4 group-hover:text-[#004D40] transition-colors">Biblioteca Pessoal</h3>
-                <p class="text-gray-600 leading-relaxed">
-                    Crie sua própria biblioteca digital, marque favoritos e acompanhe seu progresso de leitura em todos os seus dispositivos.
-                </p>
-            </div>
-            <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 text-center group hover:shadow-lg transition-all duration-300">
-                <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-[#004D40] group-hover:text-white transition-all duration-300">
-                    <i class="ri-global-line text-2xl text-[#004D40] group-hover:text-white"></i>
-                </div>
-                <h3 class="text-xl font-bold text-[#333333] mb-4 group-hover:text-[#004D40] transition-colors">Coleção Multilíngue</h3>
-                <p class="text-gray-600 leading-relaxed">
-                    Acesse livros em mais de 50 idiomas, desde clássicos em inglês até obras em francês, alemão, espanhol, italiano e muito mais.
-                </p>
-            </div>
+        
+      
             <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 text-center group hover:shadow-lg transition-all duration-300">
                 <div class="w-16 h-16 bg-[#004D40]/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-[#004D40] group-hover:text-white transition-all duration-300">
                     <i class="ri-shield-check-line text-2xl text-[#004D40] group-hover:text-white"></i>

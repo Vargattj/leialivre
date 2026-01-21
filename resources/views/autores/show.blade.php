@@ -136,8 +136,8 @@
                                     <div class="mb-4">
                                         @if ($livro->cover_thumbnail_url)
                                             <img alt="{{ $livro->title }}" 
-                                                class="w-full h-64 object-cover rounded-lg mb-4"
-                                                src="{{ $livro->cover_thumbnail_url }}">
+                                                class="w-full h-64 object-contain rounded-lg mb-4"
+                                                src="{{ $livro->cover_thumbnail_url ?? $livro->cover_url }}">
                                         @else
                                             <div class="w-full h-64 bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 rounded-lg mb-4 flex items-center justify-center">
                                                 <span class="text-6xl opacity-50">📚</span>

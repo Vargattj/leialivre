@@ -10,7 +10,7 @@
                 </button> --}}
             </nav>
             <div class="md:hidden">
-                <button class="text-[#333333] hover:text-[#004D40] p-2">
+                <button id="mobile-menu-button" class="text-[#333333] hover:text-[#004D40] p-2">
                     <i class="ri-menu-line text-xl"></i>
                 </button>
             </div>
@@ -35,9 +35,105 @@
                     >
                 </form>
             </div>
-           
+        </div>
+    </div>
 
+    <!-- Mobile Menu Overlay & Drawer -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] md:hidden hidden" role="dialog" aria-modal="true">
+        <!-- Background backdrop -->
+        <div id="mobile-menu-backdrop" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity duration-300 opacity-0"></div>
+        
+        <div id="mobile-menu-container" class="fixed inset-y-0 left-0 z-[70] w-full max-w-xs overflow-y-auto bg-white px-6 py-6 shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="flex items-center justify-between">
+                <a href="/" class="-m-1.5 p-1.5">
+                    <h1 class="w-24" style="font-family: Pacifico, serif;">
+                        <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                    </h1>
+                </a>
+                <button id="close-mobile-menu" type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700 hover:text-[#004D40] transition-colors">
+                    <span class="sr-only">Fechar menu</span>
+                    <i class="ri-close-line text-2xl"></i>
+                </button>
+            </div>
+            <div class="mt-8 flow-root">
+                <div class="-my-6 divide-y divide-gray-100">
+                    <div class="space-y-4 py-6">
+                        <a href="{{ route('livros.index') }}" class="flex items-center gap-3 -mx-3 rounded-lg px-3 py-3 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 transition-colors">
+                            <i class="ri-explore-line text-[#004D40]"></i>
+                            Explorar
+                        </a>
+                        <a href="{{ route('categorias.index') }}" class="flex items-center gap-3 -mx-3 rounded-lg px-3 py-3 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 transition-colors">
+                            <i class="ri-grid-line text-[#004D40]"></i>
+                            Categorias
+                        </a>
+                        <a href="{{ route('autores.index') }}" class="flex items-center gap-3 -mx-3 rounded-lg px-3 py-3 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50 transition-colors">
+                            <i class="ri-user-line text-[#004D40]"></i>
+                            Autores
+                        </a>
+                    </div>
+                    <div class="py-6">
+                        <form action="{{ route('livros.buscar') }}" method="GET" class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="ri-search-line text-gray-400"></i>
+                            </div>
+                            <input 
+                                name="q"
+                                placeholder="Buscar livros, autores..." 
+                                class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#004D40] focus:border-transparent bg-gray-50" 
+                                type="text"
+                                value="{{ request('q') }}"
+                            >
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </header>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuButton = document.getElementById('mobile-menu-button');
+        const closeButton = document.getElementById('close-mobile-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuContainer = document.getElementById('mobile-menu-container');
+        const backdrop = document.getElementById('mobile-menu-backdrop');
+
+        function openMenu() {
+            mobileMenu.classList.remove('hidden');
+            // Force reflow
+            mobileMenu.offsetHeight;
+            backdrop.classList.add('opacity-100');
+            backdrop.classList.remove('opacity-0');
+            mobileMenuContainer.classList.add('translate-x-0');
+            mobileMenuContainer.classList.remove('-translate-x-full');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0');
+            mobileMenuContainer.classList.remove('translate-x-0');
+            mobileMenuContainer.classList.add('-translate-x-full');
+            document.body.style.overflow = '';
+            
+            // Wait for transition to finish
+            setTimeout(() => {
+                mobileMenu.classList.add('hidden');
+            }, 300);
+        }
+
+        if (menuButton) {
+            menuButton.addEventListener('click', openMenu);
+        }
+
+        if (closeButton) {
+            closeButton.addEventListener('click', closeMenu);
+        }
+
+        if (backdrop) {
+            backdrop.addEventListener('click', closeMenu);
+        }
+    });
+</script>
 

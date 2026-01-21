@@ -6,7 +6,7 @@
             @if($book->cover_thumbnail_url || $book->cover_url)
                 <img 
                     alt="{{ $book->title }} - Capa do livro{{ $book->mainAuthors->count() > 0 ? ' de ' . $book->mainAuthors->first()->name : '' }}" 
-                    class="w-24 h-36 object-cover rounded-lg shadow-md" 
+                    class="w-24 h-36 object-contain rounded-lg shadow-md" 
                     src="{{ $book->cover_thumbnail_url ?? $book->cover_url }}"
                     loading="lazy"
                     width="96"
