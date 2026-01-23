@@ -10,6 +10,14 @@
     @endif
 @endsection
 
+@section('seo')
+    <x-seo-meta
+        title="{{ (isset($category) ? $category->name . ' - ' : (isset($term) ? 'Busca: ' . $term . ' - ' : (isset($sort) && $sort == 'downloads' ? 'Livros Mais Baixados - ' : ''))) . 'Biblioteca de Livros em Domínio Público' }}"
+        description="{{ isset($category) ? 'Explore nossa coleção de livros de ' . $category->name . ' gratuitos em domínio público. Baixe clássicos em PDF, EPUB e MOBI.' : (isset($term) ? 'Resultados da busca por ' . $term . ' em nossa biblioteca de livros gratuitos.' : (isset($sort) && $sort == 'downloads' ? 'Confira os livros em domínio público mais baixados em nossa plataforma. Literatura clássica gratuita de alta qualidade.' : 'Navegue por milhares de livros gratuitos em domínio público. Literatura clássica disponível para download em múltiplos formatos.')) }}"
+        keywords="livros grátis, domínio público, literatura clássica, download livros, {{ isset($category) ? $category->name . ', ' : '' }}ebooks gratuitos"
+    />
+@endsection
+
 @section('content')
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-white">
         <!-- Hero Section -->

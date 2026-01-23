@@ -16,9 +16,15 @@
             </div>
             <div class="flex items-center ml-auto w-full justify-center">
                 <a href="/">
-                    <h1 class="w-36 mb-2" style="font-family: Pacifico, serif;">
-                        <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
-                    </h1>
+                    @if(Route::is('home'))
+                        <h1 class="w-36 mb-2" style="font-family: Pacifico, serif;">
+                            <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                        </h1>
+                    @else
+                        <div class="w-36 mb-2" style="font-family: Pacifico, serif;">
+                            <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                        </div>
+                    @endif
                 </a>
             </div>
             <div class="hidden md:flex ml-auto max-w-lg mx-8  w-1/3">
@@ -46,9 +52,15 @@
         <div id="mobile-menu-container" class="fixed inset-y-0 left-0 z-[70] w-full max-w-xs overflow-y-auto bg-white px-6 py-6 shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out">
             <div class="flex items-center justify-between">
                 <a href="/" class="-m-1.5 p-1.5">
-                    <h1 class="w-24" style="font-family: Pacifico, serif;">
-                        <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
-                    </h1>
+                    @if(Route::is('home'))
+                        <h1 class="w-24" style="font-family: Pacifico, serif;">
+                            <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                        </h1>
+                    @else
+                        <div class="w-24" style="font-family: Pacifico, serif;">
+                            <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                        </div>
+                    @endif
                 </a>
                 <button id="close-mobile-menu" type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700 hover:text-[#004D40] transition-colors">
                     <span class="sr-only">Fechar menu</span>

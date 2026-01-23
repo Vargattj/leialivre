@@ -2,6 +2,31 @@
 
 @section('title', $book->title)
 
+@section('seo')
+    <x-seo-meta
+        title="{{ $book->title }} - {{ $book->mainAuthors->pluck('name')->join(', ') }} | Leia Livre"
+        description="{{ Str::limit('Baixe o livro ' . $book->title . ' de ' . $book->mainAuthors->pluck('name')->join(', ') . ' gratuitamente em domínio público. Disponível em PDF, EPUB e MOBI.', 155) }}"
+        :image="$book->cover_url ?? $book->cover_thumbnail_url"
+        :author="$book->mainAuthors->pluck('name')->join(', ')"
+        type="book"
+        :jsonLd="[
+            [
+                'type' => 'Book',
+                'data' => [
+                    'name' => $book->title,
+                    'url' => route('livros.show', $book->slug),
+                    'author' => $book->mainAuthors->pluck('name')->toArray(),
+                    'image' => $book->cover_url ?? $book->cover_thumbnail_url,
+                    'description' => $book->synopsis,
+                    'genre' => $book->categories->pluck('name')->toArray(),
+                    'datePublished' => $book->publication_year,
+                    'inLanguage' => $book->original_language,
+                ]
+            ]
+        ]"
+    />
+@endsection
+
 @section('content')
     <!-- Breadcrumb -->
     <div class="bg-white/80 backdrop-blur-sm border-b border-gray-200">

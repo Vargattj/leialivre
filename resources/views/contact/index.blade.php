@@ -2,6 +2,14 @@
 
 @section('title', 'Contato - Leia Livre')
 
+@section('seo')
+    <x-seo-meta
+        title="Entre em Contato - Leia Livre"
+        description="Tem dúvidas, sugestões ou quer contribuir? Entre em contato com a equipe do Leia Livre. Estamos à disposição para ajudar você a explorar a literatura clássica."
+        keywords="contato, falar conosco, suporte, sugestões, parcerias"
+    />
+@endsection
+
 @section('content')
     <!-- Breadcrumb -->
     <div class="bg-white/80 backdrop-blur-sm border-b border-gray-200">

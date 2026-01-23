@@ -7,6 +7,29 @@
 
 @section('title', $author->name)
 
+@section('seo')
+    <x-seo-meta
+        title="{{ $author->name }} - Biografia e Obras | Leia Livre"
+        description="{{ Str::limit($author->biography ?? 'Conheça a vida e baixe as obras completas de ' . $author->name . ' gratuitamente em domínio público no Leia Livre.', 155) }}"
+        :image="$author->photo_url"
+        type="profile"
+        :jsonLd="[
+            [
+                'type' => 'Person',
+                'data' => [
+                    'name' => $author->name,
+                    'url' => route('autores.show', $author->slug),
+                    'description' => $author->biography,
+                    'image' => $author->photo_url,
+                    'nationality' => $author->nationality,
+                    'birthDate' => $author->birth_date?->format('Y-m-d'),
+                    'deathDate' => $author->death_date?->format('Y-m-d'),
+                ]
+            ]
+        ]"
+    />
+@endsection
+
 @section('content')
     @php
         // Calcular estatísticas do autor

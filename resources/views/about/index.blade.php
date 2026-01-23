@@ -2,6 +2,14 @@
 
 @section('title', 'Sobre o Leia Livre - Livros em Domínio Público')
 
+@section('seo')
+    <x-seo-meta
+        title="Sobre o Leia Livre - Conheça nossa Missão | Leia Livre"
+        description="Saiba mais sobre o Leia Livre, nossa biblioteca digital de livros em domínio público. Conheça nossa missão de democratizar o acesso à literatura clássica."
+        keywords="sobre nós, missão, visão, valores, biblioteca digital, democratização da leitura"
+    />
+@endsection
+
 @section('content')
     <!-- Breadcrumb -->
     <div class="bg-white/80 backdrop-blur-sm border-b border-gray-200">

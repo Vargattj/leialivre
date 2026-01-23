@@ -193,7 +193,7 @@ class SeoHelper
             '@context' => 'https://schema.org',
             '@type' => 'Book',
             'name' => $data['name'],
-            'url' => $data['url'],
+            'url' => $data['url'] ?? url()->current(),
         ];
 
         // Optional fields
@@ -230,7 +230,7 @@ class SeoHelper
             '@context' => 'https://schema.org',
             '@type' => 'Person',
             'name' => $data['name'],
-            'url' => $data['url'],
+            'url' => $data['url'] ?? url()->current(),
         ];
 
         // Optional fields

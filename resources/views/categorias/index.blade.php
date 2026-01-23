@@ -4,6 +4,14 @@
     Categorias - Leia Livre
 @endsection
 
+@section('seo')
+    <x-seo-meta
+        title="Categorias de Livros em Domínio Público - Leia Livre"
+        description="Explore livros gratuitos organizados por categorias: Romance, Mistério, Poesia, História, Filosofia e muito mais. Baixe clássicos em múltiplos formatos."
+        keywords="categorias de livros, gêneros literários, livros grátis, literatura clássica, domínio público"
+    />
+@endsection
+
 @section('content')
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-white">
         <!-- Hero Section -->

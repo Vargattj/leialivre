@@ -8,6 +8,14 @@
     @endif
 @endsection
 
+@section('seo')
+    <x-seo-meta
+        title="{{ request()->routeIs('autores.brasileiros') ? 'Autores Brasileiros - Leia Livre' : 'Autores Renomados - Leia Livre' }}"
+        description="Descubra a vida e obra dos maiores escritores da história. Explore biografias e baixe livros gratuitos de {{ request()->routeIs('autores.brasileiros') ? 'Machado de Assis, Lima Barreto e outros autores brasileiros.' : 'Shakespeare, Dostoiévski, Machado de Assis e mais.' }}"
+        keywords="autores, escritores, biographies, literatura clássica, domínio público, {{ request()->routeIs('autores.brasileiros') ? 'autores brasileiros, literatura brasileira' : '' }}"
+    />
+@endsection
+
 @section('content')
 <!-- Breadcrumb -->
 <div class="bg-white border-b border-gray-200">

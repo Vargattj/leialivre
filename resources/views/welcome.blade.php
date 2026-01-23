@@ -3,7 +3,7 @@
 @section('seo')
     <x-seo-meta
         title="Leia Livre - Biblioteca Digital Gratuita de Livros em Domínio Público"
-        description="Descubra e baixe gratuitamente mais de 15.000 livros clássicos em domínio público. Obras de Shakespeare, Machado de Assis e mais. Múltiplos formatos: PDF, EPUB, MOBI."
+        description="Descubra e baixe gratuitamente livros clássicos em domínio público. Obras de Shakespeare, Machado de Assis e mais. Múltiplos formatos: PDF, EPUB, MOBI."
         keywords="livros grátis, domínio público, literatura clássica, download livros, ebooks gratuitos, PDF, EPUB, MOBI, Shakespeare, Machado de Assis, livros clássicos"
         :image="asset('images/og-default.jpg')"
         type="website"
@@ -12,7 +12,7 @@
                 'type' => 'WebSite',
                 'data' => [
                     'name' => 'Leia Livre',
-                    'description' => 'Biblioteca digital gratuita de livros em domínio público com mais de 15.000 obras clássicas disponíveis para download',
+                    'description' => 'Biblioteca digital gratuita de livros em domínio público, obras clássicas disponíveis para download',
                     'url' => url('/'),
                     'search_url' => route('livros.buscar') . '?q={search_term_string}',
                 ]
