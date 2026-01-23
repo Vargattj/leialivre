@@ -397,6 +397,50 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Ratings Display -->
+                    @if ($book->total_ratings > 0)
+                    <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-200">
+                        <h3 class="text-xl font-semibold text-[#333333] mb-6">
+                            Avaliações dos Leitores
+                            <span class="text-[#B8860B]" id="total-ratings-display">({{ $book->total_ratings }})</span>
+                        </h3>
+
+                            <!-- Average Rating -->
+                            <div class="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">
+                                <div class="text-center">
+                                    <div class="text-5xl font-bold text-[#B8860B]" id="average-rating-display">
+                                        {{ number_format($book->average_rating, 1) }}
+                                    </div>
+                                    <div class="flex items-center justify-center mt-2">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            <i class="ri-star-{{ $i <= round($book->average_rating) ? 'fill' : 'line' }} text-[#B8860B] text-xl"></i>
+                                        @endfor
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">de 5 estrelas</p>
+                                </div>
+                            </div>
+
+                            <!-- Recent Ratings -->
+                            <div id="ratings-list" class="space-y-4">
+                                @foreach ($book->ratings()->orderBy('created_at', 'desc')->take(5)->get() as $rating)
+                                    <div class="border-b border-gray-200 pb-4 last:border-0">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            @for ($i = 1; $i <= 5; $i++)
+                                                <i class="ri-star-{{ $i <= $rating->rating ? 'fill' : 'line' }} text-[#B8860B]"></i>
+                                            @endfor
+                                            <span class="text-sm text-gray-500 ml-2">
+                                                {{ $rating->created_at->diffForHumans() }}
+                                            </span>
+                                        </div>
+                                        @if ($rating->comment)
+                                            <p class="text-[#333333] leading-relaxed">{{ $rating->comment }}</p>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 </section>
             </div>
 
@@ -690,8 +734,14 @@
                     // Update UI
                     document.getElementById('rating-form').classList.add('hidden');
                     document.getElementById('already-rated').classList.remove('hidden');
+                    
+                    // Update average rating display
+                    if (data.data) {
+                        document.getElementById('average-rating-display').textContent = data.data.average_rating;
+                        document.getElementById('total-ratings-display').textContent = `(${data.data.total_ratings})`;
+                    }
 
-                    // Reload page after 2 seconds to show new rating in hero section
+                    // Reload page after 2 seconds to show new rating
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000);
