@@ -29,6 +29,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}" />
     <link rel="manifest" href="{{ asset('site.webmanifest') }}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
 
     
     {{-- Stylesheets --}}
@@ -40,6 +42,18 @@
     
     {{-- JSON-LD Structured Data Stack --}}
     @stack('jsonld')
+
+    <script>
+        function trackDownload(bookId, bookTitle, format) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                'event': 'book_download',
+                'book_id': bookId,
+                'book_title': bookTitle,
+                'book_format': format
+            });
+        }
+    </script>
 </head>
 <body class="min-h-screen bg-[#FDFBF6]">
     <!-- Google Tag Manager (noscript) -->

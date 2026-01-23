@@ -21,6 +21,13 @@
                     'genre' => $book->categories->pluck('name')->toArray(),
                     'datePublished' => $book->publication_year,
                     'inLanguage' => $book->original_language,
+                    'aggregateRating' => $book->total_ratings > 0 ? [
+                        '@type' => 'AggregateRating',
+                        'ratingValue' => number_format($book->average_rating, 1),
+                        'reviewCount' => $book->total_ratings,
+                        'bestRating' => '5',
+                        'worstRating' => '1'
+                    ] : null,
                 ]
             ]
         ]"
@@ -95,18 +102,27 @@
                         <!-- Stats -->
                         <div class="flex flex-wrap items-center gap-6 mb-6">
                             @if ($book->average_rating > 0)
-                                <div class="flex items-center">
-                                    @for ($i = 1; $i <= 5; $i++)
-                                        <i
-                                            class="ri-star-{{ $i <= round($book->average_rating) ? 'fill' : 'line' }} text-[#B8860B] text-xl mr-0.5"></i>
-                                    @endfor
-                                    <span
-                                        class="ml-2 text-[#333333] font-semibold text-lg">{{ number_format($book->average_rating, 1) }}</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex items-center">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            <i class="ri-star-{{ $i <= round($book->average_rating) ? 'fill' : 'line' }} text-[#B8860B] text-2xl"></i>
+                                        @endfor
+                                    </div>
+                                    <span class="text-[#333333] font-bold text-xl">{{ number_format($book->average_rating, 1) }}</span>
+                                    <span class="text-gray-500 text-sm">({{ $book->total_ratings }} {{ $book->total_ratings == 1 ? 'avaliação' : 'avaliações' }})</span>
+                                </div>
+                            @else
+                                <div class="flex items-center gap-2">
+                                    <div class="flex items-center">
+                                        @for ($i = 1; $i <= 5; $i++)
+                                            <i class="ri-star-line text-gray-300 text-2xl"></i>
+                                        @endfor
+                                    </div>
+                                    <span class="text-gray-500 text-sm">Sem avaliações</span>
                                 </div>
                             @endif
                             <div class="text-[#333333]">
-                                <span
-                                    class="font-semibold text-[#004D40]">{{ number_format($book->total_downloads) }}</span>
+                                <span class="font-semibold text-[#004D40]">{{ number_format($book->total_downloads) }}</span>
                                 downloads
                             </div>
                             @if ($book->pages)
@@ -209,6 +225,8 @@
                                 </div>
                             </div>
                             <a id="downloadBtn" href="{{ route('download.file', $selectedFormat->id) }}"
+                                onclick="trackDownload('{{ $book->id }}', '{{ addslashes($book->title) }}', this.dataset.format)"
+                                data-format="{{ $selectedFormat->format }}"
                                 class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#B8860B] hover:bg-[#A0750A] text-white text-lg py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 w-full">
                                 <i class="ri-download-cloud-line mr-3 text-xl"></i>
                                 Baixar Formato {{ $selectedFormat->format }}
@@ -306,6 +324,80 @@
                         </section>
                     @endforeach
                 @endif
+
+                <!-- Rating Section -->
+                <section id="rating-section">
+                    <h2 class="text-3xl font-bold text-[#333333] mb-6">Avaliações</h2>
+                    
+                    <!-- Rating Form -->
+                    <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 mb-8">
+                        <h3 class="text-xl font-semibold text-[#333333] mb-4">Avaliar Este Livro</h3>
+                        
+                        <div id="rating-form">
+                            <!-- Star Rating -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-[#333333] mb-3">Sua Avaliação</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex gap-1" id="star-rating">
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="1">
+                                            <i class="ri-star-line"></i>
+                                        </button>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="2">
+                                            <i class="ri-star-line"></i>
+                                        </button>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="3">
+                                            <i class="ri-star-line"></i>
+                                        </button>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="4">
+                                            <i class="ri-star-line"></i>
+                                        </button>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="5">
+                                            <i class="ri-star-line"></i>
+                                        </button>
+                                    </div>
+                                    <span id="rating-text" class="text-lg font-medium text-[#333333] ml-2"></span>
+                                </div>
+                                <input type="hidden" id="rating-value" value="0">
+                            </div>
+
+                            <!-- Comment (Optional) -->
+                            <div class="mb-6">
+                                <label for="rating-comment" class="block text-sm font-medium text-[#333333] mb-2">
+                                    Comentário (Opcional)
+                                </label>
+                                <textarea 
+                                    id="rating-comment" 
+                                    rows="3" 
+                                    maxlength="500"
+                                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-[#004D40] focus:ring-2 focus:ring-[#004D40]/20 transition-colors resize-none"
+                                    placeholder="Compartilhe sua opinião sobre este livro..."></textarea>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    <span id="comment-count">0</span>/500 caracteres
+                                </p>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button 
+                                id="submit-rating-btn"
+                                onclick="submitRating()"
+                                class="w-full bg-[#B8860B] hover:bg-[#A0750A] text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                Enviar Avaliação
+                            </button>
+
+                            <!-- Message Area -->
+                            <div id="rating-message" class="mt-4 hidden"></div>
+                        </div>
+
+                        <!-- Already Rated Message -->
+                        <div id="already-rated" class="hidden">
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                                <i class="ri-information-line text-2xl text-blue-600 mb-2"></i>
+                                <p class="text-blue-800 font-medium">Você já avaliou este livro.</p>
+                                <p class="text-blue-600 text-sm mt-1">Obrigado pela sua contribuição!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
 
             <!-- Right Column - Sidebar -->
@@ -447,6 +539,7 @@
             // Update download button
             const downloadBtn = document.getElementById('downloadBtn');
             downloadBtn.href = downloadUrl;
+            downloadBtn.dataset.format = format;
             
             // Update button text and size info
             let sizeText = size ? ` • ${size}` : '';
@@ -475,6 +568,161 @@
                 navigator.clipboard.writeText(window.location.href);
                 alert('Link copiado para a área de transferência!');
             }
+        }
+
+        // Rating System
+        let selectedRating = 0;
+        const bookId = {{ $book->id }};
+
+        // Check if user can rate on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkCanRate();
+            setupRatingInteractions();
+        });
+
+        function setupRatingInteractions() {
+            // Star rating interaction
+            const starButtons = document.querySelectorAll('.star-btn');
+            starButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectedRating = parseInt(this.dataset.rating);
+                    updateStarDisplay(selectedRating);
+                    document.getElementById('rating-value').value = selectedRating;
+                });
+
+                // Hover effect
+                btn.addEventListener('mouseenter', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    updateStarDisplay(rating, true);
+                });
+            });
+
+            // Reset stars on mouse leave
+            document.getElementById('star-rating').addEventListener('mouseleave', function() {
+                updateStarDisplay(selectedRating);
+            });
+
+            // Comment character counter
+            const commentTextarea = document.getElementById('rating-comment');
+            commentTextarea.addEventListener('input', function() {
+                document.getElementById('comment-count').textContent = this.value.length;
+            });
+        }
+
+        function updateStarDisplay(rating, isHover = false) {
+            const starButtons = document.querySelectorAll('.star-btn');
+            const ratingText = document.getElementById('rating-text');
+            
+            const ratingLabels = ['', 'Péssimo', 'Ruim', 'Bom', 'Muito Bom', 'Excelente'];
+            
+            starButtons.forEach((btn, index) => {
+                const star = btn.querySelector('i');
+                const btnRating = parseInt(btn.dataset.rating);
+                
+                if (btnRating <= rating) {
+                    star.classList.remove('ri-star-line');
+                    star.classList.add('ri-star-fill');
+                    btn.classList.remove('text-gray-300');
+                    btn.classList.add('text-[#B8860B]');
+                } else {
+                    star.classList.remove('ri-star-fill');
+                    star.classList.add('ri-star-line');
+                    btn.classList.remove('text-[#B8860B]');
+                    btn.classList.add('text-gray-300');
+                }
+            });
+
+            if (rating > 0) {
+                ratingText.textContent = ratingLabels[rating];
+            } else {
+                ratingText.textContent = '';
+            }
+        }
+
+        async function checkCanRate() {
+            try {
+                const response = await fetch(`/ratings/book/${bookId}/can-rate`);
+                const data = await response.json();
+                
+                if (!data.can_rate) {
+                    document.getElementById('rating-form').classList.add('hidden');
+                    document.getElementById('already-rated').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error checking rating status:', error);
+            }
+        }
+
+        async function submitRating() {
+            const rating = selectedRating;
+            const comment = document.getElementById('rating-comment').value.trim();
+            const submitBtn = document.getElementById('submit-rating-btn');
+            const messageDiv = document.getElementById('rating-message');
+
+            // Validation
+            if (rating === 0) {
+                showMessage('Por favor, selecione uma avaliação de 1 a 5 estrelas.', 'error');
+                return;
+            }
+
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando...';
+
+            try {
+                const response = await fetch(`/ratings/book/${bookId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        rating: rating,
+                        comment: comment
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    
+                    // Update UI
+                    document.getElementById('rating-form').classList.add('hidden');
+                    document.getElementById('already-rated').classList.remove('hidden');
+
+                    // Reload page after 2 seconds to show new rating in hero section
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showMessage(data.message, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Enviar Avaliação';
+                }
+            } catch (error) {
+                console.error('Error submitting rating:', error);
+                showMessage('Erro ao enviar avaliação. Tente novamente.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar Avaliação';
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('rating-message');
+            messageDiv.classList.remove('hidden');
+            
+            const bgColor = type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+            const textColor = type === 'success' ? 'text-green-800' : 'text-red-800';
+            const icon = type === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line';
+            
+            messageDiv.className = `mt-4 ${bgColor} border rounded-lg p-4`;
+            messageDiv.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="${icon} text-xl"></i>
+                    <p class="${textColor} font-medium">${message}</p>
+                </div>
+            `;
         }
     </script>
 @endsection

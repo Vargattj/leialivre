@@ -41,6 +41,13 @@ Route::prefix('download')->name('download.')->group(function () {
     Route::get('/book/{bookId}/{format}', [DownloadController::class, 'downloadByFormat'])->name('format');
 });
 
+// Ratings
+Route::prefix('ratings')->name('ratings.')->group(function () {
+    Route::post('/book/{bookId}', [App\Http\Controllers\RatingController::class, 'store'])->name('store');
+    Route::get('/book/{bookId}/can-rate', [App\Http\Controllers\RatingController::class, 'canRate'])->name('can-rate');
+    Route::get('/book/{bookId}', [App\Http\Controllers\RatingController::class, 'index'])->name('index');
+});
+
 // Contact
 Route::prefix('contato')->name('contact.')->group(function () {
     Route::get('/', [ContactController::class, 'index'])->name('index');
