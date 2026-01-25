@@ -7,16 +7,16 @@ use Illuminate\Support\Facades\Log;
 
 class IndexNowService
 {
-    protected string $key;
+    protected ?string $key;
     protected string $host;
-    protected string $keyLocation;
+    protected ?string $keyLocation;
     protected string $apiEndpoint = 'https://www.bing.com/indexnow';
 
     public function __construct()
     {
-        $this->key = config('services.indexnow.key') ?? env('INDEXNOW_KEY');
-        $this->host = parse_url(config('app.url'), PHP_URL_HOST);
-        $this->keyLocation = config('app.url') . '/' . $this->key . '.txt';
+        $this->key = config('services.indexnow.key') ?: env('INDEXNOW_KEY');
+        $this->host = parse_url(config('app.url'), PHP_URL_HOST) ?: 'localhost';
+        $this->keyLocation = $this->key ? config('app.url') . '/' . $this->key . '.txt' : null;
     }
 
     /**
