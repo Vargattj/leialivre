@@ -19,14 +19,14 @@ class OpenAIService
 
     public function __construct()
     {
-        $this->apiKey = config('openai.api_key', '');
-        $this->model = config('openai.model', 'gpt-4o-mini');
-        $this->enabled = config('openai.enabled', false);
-        $this->timeout = config('openai.timeout', 30);
-        $this->maxRetries = config('openai.max_retries', 3);
-        $this->retryDelay = config('openai.retry_delay', 1);
-        $this->cacheEnabled = config('openai.cache_enabled', true);
-        $this->cacheTtl = config('openai.cache_ttl', 86400);
+        $this->apiKey = (string) config('openai.api_key', '');
+        $this->model = (string) config('openai.model', 'gpt-4o-mini');
+        $this->enabled = (bool) config('openai.enabled', false);
+        $this->timeout = (int) config('openai.timeout', 30);
+        $this->maxRetries = (int) config('openai.max_retries', 3);
+        $this->retryDelay = (int) config('openai.retry_delay', 1);
+        $this->cacheEnabled = (bool) config('openai.cache_enabled', true);
+        $this->cacheTtl = (int) config('openai.cache_ttl', 86400);
     }
 
     /**

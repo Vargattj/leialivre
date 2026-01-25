@@ -40,4 +40,8 @@ return [
         'password' => env('ADMIN_PASSWORD', 'password'),
     ],
 
+    'indexnow' => [
+        'key' => env('INDEXNOW_KEY'),
+    ],
+
 ];
