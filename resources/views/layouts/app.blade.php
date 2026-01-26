@@ -44,13 +44,14 @@
     @stack('jsonld')
 
     <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+
         function trackDownload(bookId, bookTitle, format) {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                'event': 'book_download',
-                'book_id': bookId,
-                'book_title': bookTitle,
-                'book_format': format
+            gtag('event', 'file_download', {
+                'file_extension': format.toLowerCase(),
+                'file_name': bookTitle,
+                'book_id': bookId
             });
         }
     </script>
