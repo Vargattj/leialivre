@@ -72,13 +72,6 @@
                 <a href="{{ route('livros.show', $book->slug) }}" class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap border-2 border-[#004D40] text-[#004D40] hover:bg-[#004D40] hover:text-white px-3 py-1.5 text-sm rounded-md flex-1">
                     <i class="ri-eye-line mr-2"></i>Ver Detalhes
                 </a>
-                @if($book->activeFiles->count() > 0)
-                    <a href="{{ route('download.file', $book->activeFiles->first()->id) }}" 
-                       onclick="trackDownload('{{ $book->id }}', {{ json_encode($book->title) }}, '{{ $book->activeFiles->first()->format }}')"
-                       class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#004D40] text-white hover:bg-[#00695C] focus:ring-2 focus:ring-[#004D40]/20 px-3 py-1.5 text-sm rounded-md flex-1">
-                        <i class="ri-download-line mr-2"></i>Baixar
-                    </a>
-                @endif
             </div>
         </div>
     </div>

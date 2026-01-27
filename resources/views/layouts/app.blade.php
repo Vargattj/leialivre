@@ -8,6 +8,18 @@
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-TW8JB273');</script>
     <!-- End Google Tag Manager -->
+
+    @if(config('services.google.analytics_id'))
+        <!-- Google tag (gtag.js) - Direct GA4 Installation -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.google.analytics_id') }}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '{{ config('services.google.analytics_id') }}');
+        </script>
+    @endif
+
     {{-- SEO Meta Tags - Can be overridden by individual pages --}}
     @yield('seo')
     
@@ -48,22 +60,23 @@
         function gtag(){dataLayer.push(arguments);}
 
         function trackDownload(bookId, bookTitle, format) {
-            // Mensagem no console para confirmar o disparo
-            console.log('Disparando download:', bookTitle, format);
+            console.log('Iniciando rastreamento de download:', bookTitle, format);
 
-            const eventData = {
-                'event': 'file_download',
+            const payload = {
                 'file_extension': format ? format.toLowerCase() : '',
                 'file_name': bookTitle,
                 'book_id': String(bookId),
                 'transport_type': 'beacon'
             };
 
-            // 1. Envia via gtag (para GA4 configurado via gtag)
-            gtag('event', 'file_download', eventData);
+            // Dispara para o Google Analytics (gtag)
+            gtag('event', 'file_download', payload);
 
-            // 2. Envia via dataLayer puro (para o GTM reconhecer como um acionador de evento)
-            window.dataLayer.push(eventData);
+            // Dispara via dataLayer para GTM (fallback)
+            window.dataLayer.push({
+                'event': 'book_download',
+                ...payload
+            });
         }
     </script>
 </head>

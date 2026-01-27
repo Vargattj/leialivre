@@ -44,4 +44,8 @@ return [
         'key' => env('INDEXNOW_KEY'),
     ],
 
+    'google' => [
+        'analytics_id' => env('GOOGLE_ANALYTICS_ID'),
+    ],
+
 ];
