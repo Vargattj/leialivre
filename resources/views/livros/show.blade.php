@@ -225,7 +225,7 @@
                                 </div>
                             </div>
                             <a id="downloadBtn" href="{{ route('download.file', $selectedFormat->id) }}"
-                                onclick="trackDownload('{{ $book->id }}', '{{ addslashes($book->title) }}', this.dataset.format)"
+                                onclick="trackDownload('{{ $book->id }}', {{ json_encode($book->title) }}, this.dataset.format)"
                                 data-format="{{ $selectedFormat->format }}"
                                 class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#B8860B] hover:bg-[#A0750A] text-white text-lg py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 w-full">
                                 <i class="ri-download-cloud-line mr-3 text-xl"></i>

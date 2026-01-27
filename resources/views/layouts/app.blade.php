@@ -48,11 +48,22 @@
         function gtag(){dataLayer.push(arguments);}
 
         function trackDownload(bookId, bookTitle, format) {
-            gtag('event', 'file_download', {
-                'file_extension': format.toLowerCase(),
+            // Mensagem no console para confirmar o disparo
+            console.log('Disparando download:', bookTitle, format);
+
+            const eventData = {
+                'event': 'file_download',
+                'file_extension': format ? format.toLowerCase() : '',
                 'file_name': bookTitle,
-                'book_id': bookId
-            });
+                'book_id': String(bookId),
+                'transport_type': 'beacon'
+            };
+
+            // 1. Envia via gtag (para GA4 configurado via gtag)
+            gtag('event', 'file_download', eventData);
+
+            // 2. Envia via dataLayer puro (para o GTM reconhecer como um acionador de evento)
+            window.dataLayer.push(eventData);
         }
     </script>
 </head>
