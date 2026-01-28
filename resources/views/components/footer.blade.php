@@ -6,15 +6,19 @@
                 <p class="text-gray-300 mb-6 max-w-md">Sua porta de entrada para as maiores obras literárias do mundo. Descubra, baixe e explore milhares de livros em domínio público com rico contexto histórico e informações detalhadas sobre os autores.</p>
                 <div class="flex space-x-4">
                     <a href="#" class="text-gray-300 hover:text-white transition-colors">
+                        <span class="sr-only">Facebook</span>
                         <i class="ri-facebook-fill text-xl"></i>
                     </a>
                     <a href="#" class="text-gray-300 hover:text-white transition-colors">
+                        <span class="sr-only">Twitter</span>
                         <i class="ri-twitter-fill text-xl"></i>
                     </a>
                     <a href="#" class="text-gray-300 hover:text-white transition-colors">
+                        <span class="sr-only">Instagram</span>
                         <i class="ri-instagram-line text-xl"></i>
                     </a>
                     <a href="#" class="text-gray-300 hover:text-white transition-colors">
+                        <span class="sr-only">GitHub</span>
                         <i class="ri-github-fill text-xl"></i>
                     </a>
                 </div>

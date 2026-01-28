@@ -50,7 +50,8 @@
                         </div>
                         <input name="q" placeholder="Buscar por título, autor, gênero ou palavras-chave..."
                             class="block w-full pl-12 pr-4 py-4 text-lg border-0 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/20"
-                            type="text" value="{{ request('q') }}">
+                            type="text" value="{{ request('q') }}"
+                            aria-label="Buscar livros por título, autor ou gênero">
                     </div>
                 </form>
             </div>

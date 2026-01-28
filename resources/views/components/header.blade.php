@@ -11,6 +11,7 @@
             </nav>
             <div class="md:hidden">
                 <button id="mobile-menu-button" class="text-[#333333] hover:text-[#004D40] p-2">
+                    <span class="sr-only">Abrir menu</span>
                     <i class="ri-menu-line text-xl"></i>
                 </button>
             </div>
@@ -18,11 +19,11 @@
                 <a href="/">
                     @if(Route::is('home'))
                         <h1 class="w-36 mb-2" style="font-family: Pacifico, serif;">
-                            <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                            <img src="{{ asset('images/logo-leialivre.webp') }}" alt="Leia Livre" class="w-full h-full" width="144" height="40" fetchpriority="high">
                         </h1>
                     @else
                         <div class="w-36 mb-2" style="font-family: Pacifico, serif;">
-                            <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                            <img src="{{ asset('images/logo-leialivre.webp') }}" alt="Leia Livre" class="w-full h-full" width="144" height="40">
                         </div>
                     @endif
                 </a>
@@ -38,6 +39,7 @@
                         class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#004D40] focus:border-transparent" 
                         type="text" 
                         value="{{ request('q') }}"
+                        aria-label="Buscar livros, autores ou assuntos"
                     >
                 </form>
             </div>
@@ -54,11 +56,11 @@
                 <a href="/" class="-m-1.5 p-1.5">
                     @if(Route::is('home'))
                         <h1 class="w-24" style="font-family: Pacifico, serif;">
-                            <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                            <img src="{{ asset('images/logo-leialivre.webp') }}" alt="Leia Livre" class="w-full h-full" width="96" height="27">
                         </h1>
                     @else
                         <div class="w-24" style="font-family: Pacifico, serif;">
-                            <img src="{{ asset('images/logo3.png') }}" alt="Leia Livre" class="w-full h-full">
+                            <img src="{{ asset('images/logo-leialivre.webp') }}" alt="Leia Livre" class="w-full h-full" width="96" height="27">
                         </div>
                     @endif
                 </a>
@@ -94,6 +96,7 @@
                                 class="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#004D40] focus:border-transparent bg-gray-50" 
                                 type="text"
                                 value="{{ request('q') }}"
+                                aria-label="Buscar livros"
                             >
                         </form>
                     </div>

@@ -111,7 +111,8 @@
                         @if ($book->cover_url || $book->cover_thumbnail_url)
                             <img alt="Capa do livro {{ $book->title }}" itemprop="image"
                                 class="w-full max-w-md mx-auto lg:mx-0 rounded-xl shadow-2xl object-cover"
-                                src="{{ $book->cover_url ?? $book->cover_thumbnail_url }}">
+                                src="{{ $book->cover_url ?? $book->cover_thumbnail_url }}"
+                                fetchpriority="high">
                         @else
                             <div
                                 class="w-full max-w-md mx-auto lg:mx-0 aspect-[2/3] bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 rounded-xl shadow-2xl flex items-center justify-center">
@@ -326,7 +327,8 @@
                                     @if ($author->photo_url)
                                         <img alt="Foto de {{ $author->name }}"
                                             class="w-32 h-32 rounded-2xl object-cover shadow-lg flex-shrink-0 mx-auto md:mx-0"
-                                            src="{{ $author->photo_url }}">
+                                            src="{{ $author->photo_url }}"
+                                            loading="lazy">
                                     @else
                                         <div
                                             class="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 flex items-center justify-center shadow-lg flex-shrink-0 mx-auto md:mx-0">
