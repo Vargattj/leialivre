@@ -3,8 +3,18 @@
 @section('title', $book->title)
 
 @section('seo')
+    @php
+        $breadcrumbList = [
+            ['name' => 'Início', 'url' => route('home')],
+            ['name' => 'Livros', 'url' => route('livros.index')],
+        ];
+        if ($book->categories->count() > 0) {
+            $breadcrumbList[] = ['name' => $book->categories->first()->name, 'url' => route('livros.categorias', $book->categories->first()->slug)];
+        }
+        $breadcrumbList[] = ['name' => $book->title, 'url' => route('livros.show', $book->slug)];
+    @endphp
     <x-seo-meta
-        title="{{ $book->title }} - {{ $book->mainAuthors->pluck('name')->join(', ') }} | Leia Livre"
+        title="{{ $book->title }} - {{ $book->mainAuthors->pluck('name')->join(', ') }} - Pdf, Epub, Mobi"
         description="{{ Str::limit('Baixe o livro ' . $book->title . ' de ' . $book->mainAuthors->pluck('name')->join(', ') . ' gratuitamente em domínio público. Disponível em PDF, EPUB e MOBI.', 155) }}"
         :image="$book->cover_url ?? $book->cover_thumbnail_url"
         :author="$book->mainAuthors->pluck('name')->join(', ')"
@@ -15,12 +25,18 @@
                 'data' => [
                     'name' => $book->title,
                     'url' => route('livros.show', $book->slug),
-                    'author' => $book->mainAuthors->pluck('name')->toArray(),
+                    'author' => $book->mainAuthors->map(fn($a) => ['@type' => 'Person', 'name' => $a->name, 'url' => route('autores.show', $a->slug)])->toArray(),
                     'image' => $book->cover_url ?? $book->cover_thumbnail_url,
                     'description' => $book->synopsis,
                     'genre' => $book->categories->pluck('name')->toArray(),
                     'datePublished' => $book->publication_year,
                     'inLanguage' => $book->original_language,
+                    'numberOfPages' => $book->pages,
+                    'publisher' => [
+                        '@type' => 'Organization',
+                        'name' => config('app.name'),
+                        'url' => config('app.url')
+                    ],
                     'aggregateRating' => $book->total_ratings > 0 ? [
                         '@type' => 'AggregateRating',
                         'ratingValue' => number_format($book->average_rating, 1),
@@ -29,6 +45,10 @@
                         'worstRating' => '1'
                     ] : null,
                 ]
+            ],
+            [
+                'type' => 'BreadcrumbList',
+                'data' => $breadcrumbList
             ]
         ]"
     />
@@ -38,38 +58,64 @@
     <!-- Breadcrumb -->
     <div class="bg-white/80 backdrop-blur-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <nav class="flex items-center space-x-2 text-sm text-[#333333]">
-                <a href="{{ route('home') }}" class="hover:text-[#004D40] transition-colors">Início</a>
-                <i class="ri-arrow-right-s-line text-gray-400"></i>
-                <a href="{{ route('livros.index') }}" class="hover:text-[#004D40] transition-colors">Livros</a>
-                @if ($book->categories->count() > 0)
-                    <i class="ri-arrow-right-s-line text-gray-400"></i>
-                    <a href="{{ route('livros.categorias', $book->categories->first()->slug) }}"
-                        class="hover:text-[#004D40] transition-colors">
-                        {{ $book->categories->first()->name }}
-                    </a>
-                @endif
-                <i class="ri-arrow-right-s-line text-gray-400"></i>
-                <span class="text-[#B8860B] font-medium">{{ Str::limit($book->title, 50) }}</span>
+            <nav aria-label="Breadcrumb">
+                <ol class="flex items-center space-x-2 text-sm text-[#333333]" itemscope itemtype="https://schema.org/BreadcrumbList">
+                    <li class="flex items-center" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                        <a href="{{ route('home') }}" class="hover:text-[#004D40] transition-colors" itemprop="item">
+                            <span itemprop="name">Início</span>
+                        </a>
+                        <meta itemprop="position" content="1" />
+                    </li>
+                    <li class="flex items-center">
+                        <i class="ri-arrow-right-s-line text-gray-400 mx-2"></i>
+                        <div itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                            <a href="{{ route('livros.index') }}" class="hover:text-[#004D40] transition-colors" itemprop="item">
+                                <span itemprop="name">Livros</span>
+                            </a>
+                            <meta itemprop="position" content="2" />
+                        </div>
+                    </li>
+                    @if ($book->categories->count() > 0)
+                        <li class="flex items-center">
+                            <i class="ri-arrow-right-s-line text-gray-400 mx-2"></i>
+                            <div itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                                <a href="{{ route('livros.categorias', $book->categories->first()->slug) }}"
+                                    class="hover:text-[#004D40] transition-colors" itemprop="item">
+                                    <span itemprop="name">{{ $book->categories->first()->name }}</span>
+                                </a>
+                                <meta itemprop="position" content="3" />
+                            </div>
+                        </li>
+                    @endif
+                    <li class="flex items-center">
+                        <i class="ri-arrow-right-s-line text-gray-400 mx-2"></i>
+                        <div itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                            <span class="text-[#B8860B] font-medium" itemprop="name">{{ Str::limit($book->title, 50) }}</span>
+                            <link itemprop="item" href="{{ route('livros.show', $book->slug) }}" />
+                            <meta itemprop="position" content="{{ $book->categories->count() > 0 ? 4 : 3 }}" />
+                        </div>
+                    </li>
+                </ol>
             </nav>
         </div>
     </div>
 
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-br from-white to-[#FDFBF6] py-16">
+    <article itemscope itemtype="https://schema.org/Book">
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-br from-white to-[#FDFBF6] py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
                 <!-- Cover -->
                 <div class="lg:col-span-2">
                     <div class="text-center lg:text-left">
                         @if ($book->cover_url || $book->cover_thumbnail_url)
-                            <img alt="{{ $book->title }}"
+                            <img alt="Capa do livro {{ $book->title }}" itemprop="image"
                                 class="w-full max-w-md mx-auto lg:mx-0 rounded-xl shadow-2xl object-cover"
                                 src="{{ $book->cover_url ?? $book->cover_thumbnail_url }}">
                         @else
                             <div
                                 class="w-full max-w-md mx-auto lg:mx-0 aspect-[2/3] bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 rounded-xl shadow-2xl flex items-center justify-center">
-                                <span class="text-9xl opacity-50">📚</span>
+                                <span class="text-9xl opacity-50" role="img" aria-label="Capa indisponível">📚</span>
                             </div>
                         @endif
                     </div>
@@ -78,9 +124,9 @@
                 <!-- Book Info -->
                 <div class="lg:col-span-3 space-y-8">
                     <div>
-                        <h1 class="text-5xl font-bold text-[#333333] mb-4 leading-tight">{{ $book->title }}</h1>
+                        <h1 class="text-5xl font-bold text-[#333333] mb-4 leading-tight" itemprop="name">{{ $book->title }}</h1>
                         @if ($book->subtitle)
-                            <p class="text-2xl text-gray-600 mb-4">{{ $book->subtitle }}</p>
+                            <p class="text-2xl text-gray-600 mb-4" itemprop="alternativeHeadline">{{ $book->subtitle }}</p>
                         @endif
 
                         <!-- Authors -->
@@ -88,10 +134,12 @@
                             <p class="text-2xl text-[#B8860B] mb-6">
                                 por
                                 @foreach ($book->mainAuthors as $author)
-                                    <a href="{{ route('autores.show', $author->slug) }}"
-                                        class="hover:text-[#004D40] transition-colors">
-                                        {{ $author->name }}
-                                    </a>
+                                    <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+                                        <a href="{{ route('autores.show', $author->slug) }}"
+                                            class="hover:text-[#004D40] transition-colors" itemprop="url" rel="author">
+                                            <span itemprop="name">{{ $author->name }}</span>
+                                        </a>
+                                    </span>
                                     @if (!$loop->last)
                                         ,
                                     @endif
@@ -102,14 +150,16 @@
                         <!-- Stats -->
                         <div class="flex flex-wrap items-center gap-6 mb-6">
                             @if ($book->average_rating > 0)
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
                                     <div class="flex items-center">
                                         @for ($i = 1; $i <= 5; $i++)
                                             <i class="ri-star-{{ $i <= round($book->average_rating) ? 'fill' : 'line' }} text-[#B8860B] text-2xl"></i>
                                         @endfor
                                     </div>
-                                    <span class="text-[#333333] font-bold text-xl">{{ number_format($book->average_rating, 1) }}</span>
-                                    <span class="text-gray-500 text-sm">({{ $book->total_ratings }} {{ $book->total_ratings == 1 ? 'avaliação' : 'avaliações' }})</span>
+                                    <meta itemprop="bestRating" content="5" />
+                                    <meta itemprop="worstRating" content="1" />
+                                    <span class="text-[#333333] font-bold text-xl" itemprop="ratingValue">{{ number_format($book->average_rating, 1) }}</span>
+                                    <span class="text-gray-500 text-sm">(<span itemprop="reviewCount">{{ $book->total_ratings }}</span> {{ $book->total_ratings == 1 ? 'avaliação' : 'avaliações' }})</span>
                                 </div>
                             @else
                                 <div class="flex items-center gap-2">
@@ -127,7 +177,7 @@
                             </div>
                             @if ($book->pages)
                                 <div class="text-[#333333]">
-                                    <span class="font-semibold text-[#004D40]">{{ $book->pages }}</span> páginas
+                                    <span class="font-semibold text-[#004D40]" itemprop="numberOfPages">{{ $book->pages }}</span> páginas
                                 </div>
                             @endif
                         </div>
@@ -138,13 +188,14 @@
                             @if ($book->publication_year)
                                 <span
                                     class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
-                                    <i class="ri-calendar-line mr-2 text-[#B8860B]"></i>{{ $book->publication_year }}
+                                    <i class="ri-calendar-line mr-2 text-[#B8860B]"></i><span itemprop="datePublished">{{ $book->publication_year }}</span>
                                 </span>
                             @endif
                             @if ($book->categories->count() > 0)
                                 @foreach ($book->categories->take(2) as $category)
                                     <a href="{{ route('livros.categorias', $category->slug) }}"
-                                        class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm hover:border-[#004D40] transition-colors">
+                                        class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm hover:border-[#004D40] transition-colors"
+                                        itemprop="genre">
                                         <i class="ri-bookmark-line mr-2 text-[#B8860B]"></i>{{ $category->name }}
                                     </a>
                                 @endforeach
@@ -153,7 +204,7 @@
                                 <span
                                     class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
                                     <i class="ri-global-line mr-2 text-[#B8860B]"></i>
-                                    {{ $book->original_language == 'pt' || $book->original_language == 'pt-BR' ? 'Português' : 'Inglês' }}
+                                    <span itemprop="inLanguage">{{ $book->original_language == 'pt' || $book->original_language == 'pt-BR' ? 'Português' : 'Inglês' }}</span>
                                 </span>
                             @endif
                             @if ($book->is_public_domain)
@@ -166,18 +217,17 @@
                     </div>
 
                     @if ($book->synopsis || $book->full_description)
-                    <section>
-                        <div class="prose prose-lg max-w-none">
-                            @if ($book->synopsis)
-                                <p class="text-[#333333] leading-relaxed text-lg mb-6 line-clamp-4" style="-webkit-line-clamp: 4; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">
-                                    {{ $book->synopsis }}
-                                    
-                                </p>
-                            @endif
-      
-                        </div>
-                    </section>
-                @endif
+                        <section aria-labelledby="book-summary-title">
+                            <h2 id="book-summary-title" class="sr-only">Resumo do Livro</h2>
+                            <div class="prose prose-lg max-w-none">
+                                @if ($book->synopsis)
+                                    <p class="text-[#333333] leading-relaxed text-lg mb-6 line-clamp-4" itemprop="description" style="-webkit-line-clamp: 4; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">
+                                        {{ $book->synopsis }}
+                                    </p>
+                                @endif
+                            </div>
+                        </section>
+                    @endif
                     <!-- Download Section -->
                     @if ($book->activeFiles->count() > 0)
                         @php
@@ -251,14 +301,14 @@
             <div class="lg:col-span-2 space-y-12">
                 <!-- About Section -->
                 @if ($book->synopsis || $book->full_description)
-                    <section>
-                        <h2 class="text-3xl font-bold text-[#333333] mb-6">Sobre Este Livro</h2>
+                    <section id="about" aria-labelledby="about-title">
+                        <h2 id="about-title" class="text-3xl font-bold text-[#333333] mb-6">Sobre Este Livro</h2>
                         <div class="prose prose-lg max-w-none">
                             @if ($book->synopsis)
                                 <p class="text-[#333333] leading-relaxed text-lg mb-6">{{ $book->synopsis }}</p>
                             @endif
                             @if ($book->full_description)
-                                <div class="text-[#333333] leading-relaxed text-lg">
+                                <div class="text-[#333333] leading-relaxed text-lg" itemprop="text">
                                     {!! nl2br(e($book->full_description)) !!}
                                 </div>
                             @endif
@@ -269,24 +319,24 @@
                 <!-- Author Section -->
                 @if ($book->mainAuthors->count() > 0)
                     @foreach ($book->mainAuthors->take(1) as $author)
-                        <section>
-                            <h2 class="text-3xl font-bold text-[#333333] mb-6">Sobre o Autor</h2>
+                        <section id="author" aria-labelledby="author-title">
+                            <h2 id="author-title" class="text-3xl font-bold text-[#333333] mb-6">Sobre o Autor</h2>
                             <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-200">
                                 <div class="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-8">
                                     @if ($author->photo_url)
-                                        <img alt="{{ $author->name }}"
+                                        <img alt="Foto de {{ $author->name }}"
                                             class="w-32 h-32 rounded-2xl object-cover shadow-lg flex-shrink-0 mx-auto md:mx-0"
                                             src="{{ $author->photo_url }}">
                                     @else
                                         <div
                                             class="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 flex items-center justify-center shadow-lg flex-shrink-0 mx-auto md:mx-0">
-                                            <i class="ri-user-line text-5xl text-[#004D40] opacity-50"></i>
+                                            <i class="ri-user-line text-5xl text-[#004D40] opacity-50" role="img" aria-label="Avatar padrão"></i>
                                         </div>
                                     @endif
                                     <div class="flex-1">
                                         <h3 class="text-2xl font-semibold text-[#333333] mb-4">
                                             <a href="{{ route('autores.show', $author->slug) }}"
-                                                class="hover:text-[#004D40] transition-colors">
+                                                class="hover:text-[#004D40] transition-colors" rel="author">
                                                 {{ $author->name }}
                                             </a>
                                         </h3>
@@ -297,8 +347,7 @@
                                         <div class="flex flex-wrap gap-6 text-sm">
                                             <div class="flex items-center">
                                                 <i class="ri-book-line mr-2 text-[#B8860B]"></i>
-                                                <span class="font-medium">{{ $author->books->count() }} Obras
-                                                    Publicadas</span>
+                                                <span class="font-medium">{{ $author->books->count() }} {{ $author->books->count() == 1 ? 'Obra Publicada' : 'Obras Publicadas' }}</span>
                                             </div>
                                             @if ($author->birth_date)
                                                 <div class="flex items-center">
@@ -326,8 +375,8 @@
                 @endif
 
                 <!-- Rating Section -->
-                <section id="rating-section">
-                    <h2 class="text-3xl font-bold text-[#333333] mb-6">Avaliações</h2>
+                <section id="rating-section" aria-labelledby="ratings-title">
+                    <h2 id="ratings-title" class="text-3xl font-bold text-[#333333] mb-6">Avaliações</h2>
                     
                     <!-- Rating Form -->
                     <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-200 mb-8">
@@ -339,20 +388,20 @@
                                 <label class="block text-sm font-medium text-[#333333] mb-3">Sua Avaliação</label>
                                 <div class="flex items-center gap-2">
                                     <div class="flex gap-1" id="star-rating">
-                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="1">
-                                            <i class="ri-star-line"></i>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="1" aria-label="Avaliar com 1 estrela">
+                                            <i class="ri-star-line" aria-hidden="true"></i>
                                         </button>
-                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="2">
-                                            <i class="ri-star-line"></i>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="2" aria-label="Avaliar com 2 estrelas">
+                                            <i class="ri-star-line" aria-hidden="true"></i>
                                         </button>
-                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="3">
-                                            <i class="ri-star-line"></i>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="3" aria-label="Avaliar com 3 estrelas">
+                                            <i class="ri-star-line" aria-hidden="true"></i>
                                         </button>
-                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="4">
-                                            <i class="ri-star-line"></i>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="4" aria-label="Avaliar com 4 estrelas">
+                                            <i class="ri-star-line" aria-hidden="true"></i>
                                         </button>
-                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="5">
-                                            <i class="ri-star-line"></i>
+                                        <button type="button" class="star-btn text-4xl text-gray-300 hover:text-[#B8860B] transition-colors" data-rating="5" aria-label="Avaliar com 5 estrelas">
+                                            <i class="ri-star-line" aria-hidden="true"></i>
                                         </button>
                                     </div>
                                     <span id="rating-text" class="text-lg font-medium text-[#333333] ml-2"></span>
@@ -445,11 +494,11 @@
             </div>
 
             <!-- Right Column - Sidebar -->
-            <div class="lg:col-span-1">
+            <aside class="lg:col-span-1">
                 <div class="sticky top-24 space-y-8">
                     <!-- Book Information -->
-                    <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200">
-                        <h3 class="text-xl font-semibold text-[#333333] mb-6">Informações do Livro</h3>
+                    <section class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200" aria-labelledby="sidebar-info-title">
+                        <h3 id="sidebar-info-title" class="text-xl font-semibold text-[#333333] mb-6">Informações do Livro</h3>
                         <div class="space-y-4">
                             @if ($book->categories->count() > 0)
                                 <div class="flex justify-between items-center py-2 border-b border-gray-200">
@@ -491,31 +540,34 @@
                                 </div>
                             @endif
                         </div>
-                    </div>
+                    </section>
 
                     <!-- Share Section -->
-                    <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200">
-                        <h3 class="text-xl font-semibold text-[#333333] mb-4">Compartilhar Este Livro</h3>
+                    <section class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200" aria-labelledby="sidebar-share-title">
+                        <h3 id="sidebar-share-title" class="text-xl font-semibold text-[#333333] mb-4">Compartilhar Este Livro</h3>
                         <div class="flex space-x-3">
-                            <button onclick="shareBook()"
+                            <button onclick="shareBook()" title="Compartilhar"
                                 class="flex-1 bg-[#004D40] hover:bg-[#00695C] text-white py-3 px-4 rounded-lg transition-colors">
-                                <i class="ri-share-line"></i>
+                                <i class="ri-share-line" aria-hidden="true"></i>
+                                <span class="sr-only">Compartilhar</span>
                             </button>
-                            <button
+                            <button title="Salvar"
                                 class="flex-1 bg-[#B8860B] hover:bg-[#A0750A] text-white py-3 px-4 rounded-lg transition-colors">
-                                <i class="ri-bookmark-line"></i>
+                                <i class="ri-bookmark-line" aria-hidden="true"></i>
+                                <span class="sr-only">Salvar</span>
                             </button>
-                            <button onclick="window.print()"
+                            <button onclick="window.print()" title="Imprimir"
                                 class="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg transition-colors">
-                                <i class="ri-printer-line"></i>
+                                <i class="ri-printer-line" aria-hidden="true"></i>
+                                <span class="sr-only">Imprimir</span>
                             </button>
                         </div>
-                    </div>
+                    </section>
 
                     <!-- Tags -->
                     @if ($book->tags->count() > 0)
-                        <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200">
-                            <h3 class="text-xl font-semibold text-[#333333] mb-4">Etiquetas</h3>
+                        <section class="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-gray-200" aria-labelledby="sidebar-tags-title">
+                            <h3 id="sidebar-tags-title" class="text-xl font-semibold text-[#333333] mb-4">Etiquetas</h3>
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($book->tags as $tag)
                                     <span class="px-3 py-1 bg-[#004D40]/10 text-[#004D40] rounded-full text-sm">
@@ -523,10 +575,10 @@
                                     </span>
                                 @endforeach
                             </div>
-                        </div>
+                        </section>
                     @endif
                 </div>
-            </div>
+            </aside>
         </div>
 
         <!-- Related Books -->
@@ -556,8 +608,8 @@
         @endphp
 
         @if ($relatedBooks->count() > 0)
-            <section class="mt-8 mb-16">
-                <h2 class="text-3xl font-bold text-[#333333] mb-8">Você Também Pode Gostar</h2>
+            <section class="mt-8 mb-16" aria-labelledby="related-books-title">
+                <h2 id="related-books-title" class="text-3xl font-bold text-[#333333] mb-8">Você Também Pode Gostar</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     @foreach ($relatedBooks as $relatedBook)
                         <x-book-card :book="$relatedBook" />
@@ -566,6 +618,7 @@
             </section>
         @endif
     </div>
+    </article>
 
     <script>
         function selectFormat(format, fileId, downloadUrl, size) {
