@@ -184,13 +184,29 @@ class Book extends Model
 
     public function scopeSearch($query, $term)
     {
-        return $query->where(function ($q) use ($term) {
-            $q->where('title', 'LIKE', "%{$term}%")
-              ->orWhere('subtitle', 'LIKE', "%{$term}%")
-              ->orWhere('synopsis', 'LIKE', "%{$term}%")
-              ->orWhereHas('authors', function ($query) use ($term) {
-                  $query->where('name', 'LIKE', "%{$term}%");
-              });
+        if (is_null($term) || trim($term) === '') {
+            return $query;
+        }
+
+        $term = trim($term);
+        $words = explode(' ', $term);
+
+        return $query->where(function ($q) use ($words) {
+            foreach ($words as $word) {
+                if (empty($word)) continue;
+                
+                $q->where(function ($sub) use ($word) {
+                    $sub->where('title', 'ILIKE', "%{$word}%")
+                        ->orWhere('subtitle', 'ILIKE', "%{$word}%")
+                        ->orWhere('synopsis', 'ILIKE', "%{$word}%")
+                        ->orWhere('full_description', 'ILIKE', "%{$word}%")
+                        ->orWhereHas('authors', function ($authorQuery) use ($word) {
+                            $authorQuery->where('name', 'ILIKE', "%{$word}%")
+                                        ->orWhere('full_name', 'ILIKE', "%{$word}%")
+                                        ->orWhere('pseudonyms', 'ILIKE', "%{$word}%");
+                        });
+                });
+            }
         });
     }
 

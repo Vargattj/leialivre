@@ -102,20 +102,20 @@
 
     <article itemscope itemtype="https://schema.org/Book">
         <!-- Hero Section -->
-        <div class="bg-gradient-to-br from-white to-[#FDFBF6] py-16">
+        <div class="bg-gradient-to-br from-white to-[#FDFBF6] py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
                 <!-- Cover -->
                 <div class="lg:col-span-2">
-                    <div class="text-center lg:text-left">
+                    <div class="text-center">
                         @if ($book->cover_url || $book->cover_thumbnail_url)
                             <img alt="Capa do livro {{ $book->title }}" itemprop="image"
-                                class="w-full max-w-md mx-auto lg:mx-0 rounded-xl shadow-2xl object-cover"
+                                class="w-1/2 lg:w-[300px] lg:max-w-[300px] mx-auto rounded-xl shadow-2xl object-cover"
                                 src="{{ $book->cover_url ?? $book->cover_thumbnail_url }}"
                                 fetchpriority="high">
                         @else
                             <div
-                                class="w-full max-w-md mx-auto lg:mx-0 aspect-[2/3] bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 rounded-xl shadow-2xl flex items-center justify-center">
+                                class="w-1/2 lg:max-w-[300px] aspect-[2/3] mx-auto bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 rounded-xl shadow-2xl flex items-center justify-center">
                                 <span class="text-9xl opacity-50" role="img" aria-label="Capa indisponível">📚</span>
                             </div>
                         @endif
@@ -149,7 +149,7 @@
                         @endif
 
                         <!-- Stats -->
-                        <div class="flex flex-wrap items-center gap-6 mb-6">
+                        <div class="flex-column flex-wrap items-center gap-6 mb-6">
                             @if ($book->average_rating > 0)
                                 <div class="flex items-center gap-2" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
                                     <div class="flex items-center">
@@ -160,7 +160,7 @@
                                     <meta itemprop="bestRating" content="5" />
                                     <meta itemprop="worstRating" content="1" />
                                     <span class="text-[#333333] font-bold text-xl" itemprop="ratingValue">{{ number_format($book->average_rating, 1) }}</span>
-                                    <span class="text-gray-500 text-sm">(<span itemprop="reviewCount">{{ $book->total_ratings }}</span> {{ $book->total_ratings == 1 ? 'avaliação' : 'avaliações' }})</span>
+                                    <span class="text-gray-500 text-sm mb-2 mt-2">(<span itemprop="reviewCount">{{ $book->total_ratings }}</span> {{ $book->total_ratings == 1 ? 'avaliação' : 'avaliações' }})</span>
                                 </div>
                             @else
                                 <div class="flex items-center gap-2">
@@ -218,7 +218,7 @@
                     </div>
 
                     @if ($book->synopsis || $book->full_description)
-                        <section aria-labelledby="book-summary-title">
+                        <!-- <section aria-labelledby="book-summary-title">
                             <h2 id="book-summary-title" class="sr-only">Resumo do Livro</h2>
                             <div class="prose prose-lg max-w-none">
                                 @if ($book->synopsis)
@@ -227,7 +227,7 @@
                                     </p>
                                 @endif
                             </div>
-                        </section>
+                        </section> -->
                     @endif
                     <!-- Download Section -->
                     @if ($book->activeFiles->count() > 0)
@@ -326,7 +326,7 @@
                                 <div class="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-8">
                                     @if ($author->photo_url)
                                         <img alt="Foto de {{ $author->name }}"
-                                            class="w-32 h-32 rounded-2xl object-cover shadow-lg flex-shrink-0 mx-auto md:mx-0"
+                                            class="w-32 h-32 rounded-2xl object-cover shadow-lg flex-shrink-0 mx-auto md:ml-0 md:mr-8"
                                             src="{{ $author->photo_url }}"
                                             loading="lazy">
                                     @else
@@ -335,7 +335,7 @@
                                             <i class="ri-user-line text-5xl text-[#004D40] opacity-50" role="img" aria-label="Avatar padrão"></i>
                                         </div>
                                     @endif
-                                    <div class="flex-1">
+                                    <div class="flex-1 min-[320px]:ml-4">
                                         <h3 class="text-2xl font-semibold text-[#333333] mb-4">
                                             <a href="{{ route('autores.show', $author->slug) }}"
                                                 class="hover:text-[#004D40] transition-colors" rel="author">

@@ -31,7 +31,8 @@ class AuthorController extends Controller
         }
         
         $authors = $query->orderBy('name')
-            ->paginate(30);
+            ->paginate(30)
+            ->withQueryString();
         
         // Get popular categories for filters
         $popularCategories = Category::whereHas('books', function($q) {
@@ -103,7 +104,8 @@ class AuthorController extends Controller
         }
         
         $authors = $query->orderBy('name')
-            ->paginate(30);
+            ->paginate(30)
+            ->withQueryString();
         
         // Get popular categories for filters
         $popularCategories = Category::whereHas('books', function($q) {

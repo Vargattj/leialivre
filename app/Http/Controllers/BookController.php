@@ -46,7 +46,7 @@ class BookController extends Controller
                 break;
         }
 
-        $books = $query->paginate(18);
+        $books = $query->paginate(18)->withQueryString();
 
         // Get popular categories for filters
         $popularCategories = Category::whereHas('books', function($q) {
@@ -89,7 +89,7 @@ class BookController extends Controller
     // Search books
     public function search(Request $request)
     {
-        $term = $request->input('q');
+        $term = trim($request->input('q', ''));
         
         $query = Book::with(['authors', 'categories', 'activeFiles'])
             ->active()
@@ -119,7 +119,7 @@ class BookController extends Controller
                 break;
         }
 
-        $books = $query->paginate(18);
+        $books = $query->paginate(18)->withQueryString();
 
         // Get popular categories for filters
         $popularCategories = Category::whereHas('books', function($q) {
@@ -132,11 +132,11 @@ class BookController extends Controller
             ->take(7)
             ->get();
 
-        // Calculate stats
-        $totalBooks = Book::where('is_active', true)->count();
-        $totalAuthors = Author::whereHas('books', function($q) {
-            $q->where('is_active', true);
-        })->distinct()->count();
+        // Calculate stats for this specific search
+        $totalBooks = $books->total();
+        $totalAuthors = Author::whereHas('books', function($q) use ($term) {
+            $q->active()->search($term);
+        })->count();
 
         return view('livros.index', compact('books', 'term', 'popularCategories', 'totalBooks', 'totalAuthors', 'sort'));
     }
@@ -174,7 +174,7 @@ class BookController extends Controller
                 break;
         }
 
-        $books = $query->paginate(18);
+        $books = $query->paginate(18)->withQueryString();
 
         // Get popular categories for filters
         $popularCategories = Category::whereHas('books', function($q) {
@@ -203,7 +203,7 @@ class BookController extends Controller
             ->active()
             ->orderBy('total_downloads', 'desc');
 
-        $books = $query->paginate(18);
+        $books = $query->paginate(18)->withQueryString();
 
         // Get popular categories for filters
         $popularCategories = Category::whereHas('books', function($q) {
