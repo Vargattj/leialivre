@@ -317,6 +317,28 @@
                     </section>
                 @endif
 
+                <!-- Famous Quotes Section -->
+                @if ($book->activeQuotes->count() > 0)
+                    <section id="quotes" aria-labelledby="quotes-title">
+                        <h2 id="quotes-title" class="text-3xl font-bold text-[#333333] mb-6">Citações Famosas</h2>
+                        <div class="space-y-6">
+                            @foreach ($book->activeQuotes as $quote)
+                                <div class="bg-gradient-to-r from-[#004D40]/5 to-[#B8860B]/5 rounded-2xl p-8 border-l-4 border-[#B8860B]">
+                                    <blockquote class="text-xl text-[#333333] italic leading-relaxed mb-4">
+                                        "{{ $quote->text }}"
+                                    </blockquote>
+                                    <cite class="text-[#B8860B] font-medium">
+                                        — {{ $quote->author->name }}
+                                        @if ($quote->page_number)
+                                            <span class="text-sm text-gray-500">(Página {{ $quote->page_number }})</span>
+                                        @endif
+                                    </cite>
+                                </div>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
                 <!-- Author Section -->
                 @if ($book->mainAuthors->count() > 0)
                     @foreach ($book->mainAuthors->take(1) as $author)
@@ -490,8 +512,8 @@
                                     </div>
                                 @endforeach
                             </div>
+                        </div>
                         @endif
-                    </div>
                 </section>
             </div>
 

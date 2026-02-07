@@ -147,6 +147,16 @@ class Book extends Model
         return $this->hasMany(Rating::class);
     }
 
+    public function quotes()
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    public function activeQuotes()
+    {
+        return $this->hasMany(Quote::class)->where('is_active', true)->orderBy('order')->orderBy('created_at');
+    }
+
     // Scopes
     public function scopeActive($query)
     {
@@ -193,8 +203,9 @@ class Book extends Model
 
         return $query->where(function ($q) use ($words) {
             foreach ($words as $word) {
-                if (empty($word)) continue;
-                
+                if (empty($word))
+                    continue;
+
                 $q->where(function ($sub) use ($word) {
                     $sub->where('title', 'ILIKE', "%{$word}%")
                         ->orWhere('subtitle', 'ILIKE', "%{$word}%")
@@ -202,8 +213,8 @@ class Book extends Model
                         ->orWhere('full_description', 'ILIKE', "%{$word}%")
                         ->orWhereHas('authors', function ($authorQuery) use ($word) {
                             $authorQuery->where('name', 'ILIKE', "%{$word}%")
-                                        ->orWhere('full_name', 'ILIKE', "%{$word}%")
-                                        ->orWhere('pseudonyms', 'ILIKE', "%{$word}%");
+                                ->orWhere('full_name', 'ILIKE', "%{$word}%")
+                                ->orWhere('pseudonyms', 'ILIKE', "%{$word}%");
                         });
                 });
             }

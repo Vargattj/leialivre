@@ -56,13 +56,13 @@ class Author extends Model
                 $baseSlug = Str::slug($author->name);
                 $slug = $baseSlug;
                 $counter = 1;
-                
+
                 // Garantir que o slug seja único
                 while (static::where('slug', $slug)->exists()) {
                     $slug = $baseSlug . '-' . $counter;
                     $counter++;
                 }
-                
+
                 $author->slug = $slug;
             }
         });
@@ -89,6 +89,16 @@ class Author extends Model
         return $this->belongsToMany(Book::class, 'book_author')
             ->wherePivot('contribution_type', 'translator')
             ->withTimestamps();
+    }
+
+    public function quotes()
+    {
+        return $this->hasMany(Quote::class);
+    }
+
+    public function activeQuotes()
+    {
+        return $this->hasMany(Quote::class)->where('is_active', true)->orderBy('order')->orderBy('created_at');
     }
 
     // Scopes

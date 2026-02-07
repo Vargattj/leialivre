@@ -73,11 +73,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // Admin Protected Routes
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Resources
     Route::resource('authors', App\Http\Controllers\Admin\AuthorController::class);
     Route::resource('books', App\Http\Controllers\Admin\BookController::class);
     Route::resource('categories', App\Http\Controllers\Admin\CategoryController::class);
+    Route::resource('quotes', App\Http\Controllers\Admin\QuoteController::class);
 
     // Import (Moved from public scope)
     Route::prefix('import')->name('import.')->group(function () {
