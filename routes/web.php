@@ -87,6 +87,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/search/gutenberg', [ImportController::class, 'searchGutenberg'])->name('search.gutenberg');
         Route::post('/import', [ImportController::class, 'import'])->name('do');
     });
+
+    // JSON Import
+    Route::prefix('import-json')->name('import-json.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\JsonImportController::class, 'index'])->name('index');
+        Route::post('/preview', [App\Http\Controllers\Admin\JsonImportController::class, 'preview'])->name('preview');
+        Route::post('/import', [App\Http\Controllers\Admin\JsonImportController::class, 'import'])->name('import');
+        Route::post('/create-author', [App\Http\Controllers\Admin\JsonImportController::class, 'createAuthor'])->name('create-author');
+        Route::post('/create-category', [App\Http\Controllers\Admin\JsonImportController::class, 'createCategory'])->name('create-category');
+    });
 });
 
 
