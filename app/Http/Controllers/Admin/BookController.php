@@ -21,9 +21,9 @@ class BookController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
-                  ->orWhere('subtitle', 'like', "%{$search}%");
+                    ->orWhere('subtitle', 'like', "%{$search}%");
             });
         }
 
@@ -44,7 +44,7 @@ class BookController extends Controller
     {
         $authors = Author::orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
-        
+
         return view('admin.books.create', compact('authors', 'categories'));
     }
 
@@ -80,7 +80,7 @@ class BookController extends Controller
 
         // Sync Relationships
         $book->authors()->sync($request->authors);
-        
+
         // Sync Categories (First one is primary)
         $categoriesData = [];
         foreach ($request->categories as $index => $categoryId) {
@@ -120,7 +120,7 @@ class BookController extends Controller
     {
         $authors = Author::orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
-        $book->load(['authors', 'categories', 'files']);
+        $book->load(['authors', 'categories', 'files', 'faqs']);
 
         return view('admin.books.edit', compact('book', 'authors', 'categories'));
     }
@@ -157,7 +157,7 @@ class BookController extends Controller
 
         // Sync Relationships
         $book->authors()->sync($request->authors);
-        
+
         $categoriesData = [];
         foreach ($request->categories as $index => $categoryId) {
             $categoriesData[$categoryId] = ['is_primary' => $index === 0];

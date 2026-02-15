@@ -157,6 +157,16 @@ class Book extends Model
         return $this->hasMany(Quote::class)->where('is_active', true)->orderBy('order')->orderBy('created_at');
     }
 
+    public function faqs()
+    {
+        return $this->hasMany(BookFaq::class);
+    }
+
+    public function activeFaqs()
+    {
+        return $this->hasMany(BookFaq::class)->active()->ordered();
+    }
+
     // Scopes
     public function scopeActive($query)
     {

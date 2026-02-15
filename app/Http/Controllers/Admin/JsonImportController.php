@@ -214,6 +214,35 @@ class JsonImportController extends Controller
                     'is_primary' => true,
                 ]);
 
+                // Import FAQs if provided
+                if (isset($bookData['faqs']) && is_array($bookData['faqs'])) {
+                    foreach ($bookData['faqs'] as $faqIndex => $faqData) {
+                        if (isset($faqData['question']) && isset($faqData['answer'])) {
+                            $book->faqs()->create([
+                                'question' => $faqData['question'],
+                                'answer' => $faqData['answer'],
+                                'order' => $faqData['order'] ?? $faqIndex,
+                                'is_active' => $faqData['is_active'] ?? true,
+                            ]);
+                        }
+                    }
+                }
+
+                // Import Quotes if provided
+                if (isset($bookData['quotes']) && is_array($bookData['quotes'])) {
+                    foreach ($bookData['quotes'] as $quoteIndex => $quoteData) {
+                        if (isset($quoteData['text'])) {
+                            $book->quotes()->create([
+                                'text' => $quoteData['text'],
+                                'author_id' => $request->author_id, // Use the selected author from request
+                                'page_number' => $quoteData['page_number'] ?? null,
+                                'order' => $quoteData['order'] ?? $quoteIndex,
+                                'is_active' => $quoteData['is_active'] ?? true,
+                            ]);
+                        }
+                    }
+                }
+
                 $imported++;
             }
 

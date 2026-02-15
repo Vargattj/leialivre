@@ -151,35 +151,25 @@
                         <!-- Stats -->
                         <div class="flex-column flex-wrap items-center gap-6 mb-6">
                             @if ($book->average_rating > 0)
-                                <div class="flex items-center gap-2" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
-                                    <div class="flex items-center">
+                                <a href="#rating-section" class="flex items-center gap-2 hover:opacity-80 transition-opacity" itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
+                                    <div class="flex items-center border-b border-[#B8860B]">
                                         @for ($i = 1; $i <= 5; $i++)
                                             <i class="ri-star-{{ $i <= round($book->average_rating) ? 'fill' : 'line' }} text-[#B8860B] text-2xl"></i>
                                         @endfor
                                     </div>
                                     <meta itemprop="bestRating" content="5" />
                                     <meta itemprop="worstRating" content="1" />
-                                    <span class="text-[#333333] font-bold text-xl" itemprop="ratingValue">{{ number_format($book->average_rating, 1) }}</span>
                                     <span class="text-gray-500 text-sm mb-2 mt-2">(<span itemprop="reviewCount">{{ $book->total_ratings }}</span> {{ $book->total_ratings == 1 ? 'avaliação' : 'avaliações' }})</span>
-                                </div>
+                                </a>
                             @else
-                                <div class="flex items-center gap-2">
+                                <a href="#rating-section" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
                                     <div class="flex items-center">
                                         @for ($i = 1; $i <= 5; $i++)
                                             <i class="ri-star-line text-gray-300 text-2xl"></i>
                                         @endfor
                                     </div>
-                                    <span class="text-gray-500 text-sm">Sem avaliações</span>
-                                </div>
-                            @endif
-                            <div class="text-[#333333]">
-                                <span class="font-semibold text-[#004D40]">{{ number_format($book->total_downloads) }}</span>
-                                downloads
-                            </div>
-                            @if ($book->pages)
-                                <div class="text-[#333333]">
-                                    <span class="font-semibold text-[#004D40]" itemprop="numberOfPages">{{ $book->pages }}</span> páginas
-                                </div>
+                                    <span class="text-gray-500 text-sm">Sem avaliações - Seja o primeiro!</span>
+                                </a>
                             @endif
                         </div>
 
@@ -339,65 +329,80 @@
                     </section>
                 @endif
 
-                <!-- Author Section -->
-                @if ($book->mainAuthors->count() > 0)
-                    @foreach ($book->mainAuthors->take(1) as $author)
-                        <section id="author" aria-labelledby="author-title">
-                            <h2 id="author-title" class="text-3xl font-bold text-[#333333] mb-6">Sobre o Autor</h2>
-                            <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-200">
-                                <div class="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-8">
-                                    @if ($author->photo_url)
-                                        <img alt="Foto de {{ $author->name }}"
-                                            class="w-32 h-32 rounded-2xl object-cover shadow-lg flex-shrink-0 mx-auto md:ml-0 md:mr-8"
-                                            src="{{ $author->photo_url }}"
-                                            loading="lazy">
-                                    @else
-                                        <div
-                                            class="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 flex items-center justify-center shadow-lg flex-shrink-0 mx-auto md:mx-0">
-                                            <i class="ri-user-line text-5xl text-[#004D40] opacity-50" role="img" aria-label="Avatar padrão"></i>
-                                        </div>
-                                    @endif
-                                    <div class="flex-1 min-[320px]:ml-4">
-                                        <h3 class="text-2xl font-semibold text-[#333333] mb-4">
-                                            <a href="{{ route('autores.show', $author->slug) }}"
-                                                class="hover:text-[#004D40] transition-colors" rel="author">
-                                                {{ $author->name }}
-                                            </a>
-                                        </h3>
-                                        @if ($author->biography)
-                                            <p class="text-[#333333] leading-relaxed mb-6">
-                                                {{ Str::limit($author->biography, 300) }}</p>
-                                        @endif
-                                        <div class="flex flex-wrap gap-6 text-sm">
-                                            <div class="flex items-center">
-                                                <i class="ri-book-line mr-2 text-[#B8860B]"></i>
-                                                <span class="font-medium">{{ $author->books->count() }} {{ $author->books->count() == 1 ? 'Obra Publicada' : 'Obras Publicadas' }}</span>
-                                            </div>
-                                            @if ($author->birth_date)
-                                                <div class="flex items-center">
-                                                    <i class="ri-calendar-line mr-2 text-[#B8860B]"></i>
-                                                    <span class="font-medium">
-                                                        {{ $author->birth_date->format('Y') }}
-                                                        @if ($author->death_date)
-                                                            - {{ $author->death_date->format('Y') }}
-                                                        @endif
-                                                    </span>
-                                                </div>
-                                            @endif
-                                            @if ($author->nationality)
-                                                <div class="flex items-center">
-                                                    <i class="ri-award-line mr-2 text-[#B8860B]"></i>
-                                                    <span class="font-medium">{{ $author->nationality }}</span>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    @endforeach
-                @endif
+                <!-- FAQ Section -->
+                <section id="faq" aria-labelledby="faq-title" itemscope itemtype="https://schema.org/FAQPage">
+                    <h2 id="faq-title" class="text-3xl font-bold text-[#333333] mb-6">Perguntas Frequentes</h2>
+                    <div class="space-y-4">
+                        @php
+                            $faqCounter = 1;
+                        @endphp
 
+                        {{-- Custom FAQs from database --}}
+                        @foreach($book->activeFaqs as $customFaq)
+                        <div class="bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200 overflow-hidden" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                            <button 
+                                class="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-50/50 transition-colors"
+                                onclick="toggleFaq(this)"
+                                aria-expanded="false"
+                                aria-controls="faq-answer-{{ $faqCounter }}">
+                                <h3 class="text-lg font-semibold text-[#333333] pr-4" itemprop="name">
+                                    {{ $customFaq->question }}
+                                </h3>
+                                <i class="ri-arrow-down-s-line text-2xl text-[#B8860B] transition-transform duration-200"></i>
+                            </button>
+                            <div id="faq-answer-{{ $faqCounter }}" class="hidden px-8 pb-6" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                                <p class="text-[#333333] leading-relaxed" itemprop="text">
+                                    {!! nl2br(e($customFaq->answer)) !!}
+                                </p>
+                            </div>
+                        </div>
+                        @php $faqCounter++; @endphp
+                        @endforeach
+
+                        {{-- Default FAQ 1 - Always shown --}}
+                        <div class="bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200 overflow-hidden" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                            <button 
+                                class="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-50/50 transition-colors"
+                                onclick="toggleFaq(this)"
+                                aria-expanded="false"
+                                aria-controls="faq-answer-{{ $faqCounter }}">
+                                <h3 class="text-lg font-semibold text-[#333333] pr-4" itemprop="name">
+                                    Qual é o melhor formato para baixar este livro?
+                                </h3>
+                                <i class="ri-arrow-down-s-line text-2xl text-[#B8860B] transition-transform duration-200"></i>
+                            </button>
+                            <div id="faq-answer-{{ $faqCounter }}" class="hidden px-8 pb-6" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                                <p class="text-[#333333] leading-relaxed" itemprop="text">
+                                    O formato ideal depende do seu dispositivo: <strong>EPUB</strong> é recomendado para e-readers e tablets (Kindle, Kobo), 
+                                    <strong>PDF</strong> é melhor para computadores e impressão, e <strong>MOBI</strong> é específico para Kindle. 
+                                    Todos os formatos mantêm o conteúdo completo do livro.
+                                </p>
+                            </div>
+                        </div>
+                        @php $faqCounter++; @endphp
+
+                        {{-- Default FAQ 2 - Always shown --}}
+                        <div class="bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200 overflow-hidden" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+                            <button 
+                                class="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-50/50 transition-colors"
+                                onclick="toggleFaq(this)"
+                                aria-expanded="false"
+                                aria-controls="faq-answer-{{ $faqCounter }}">
+                                <h3 class="text-lg font-semibold text-[#333333] pr-4" itemprop="name">
+                                    Posso ler este livro no meu celular ou tablet?
+                                </h3>
+                                <i class="ri-arrow-down-s-line text-2xl text-[#B8860B] transition-transform duration-200"></i>
+                            </button>
+                            <div id="faq-answer-{{ $faqCounter }}" class="hidden px-8 pb-6" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+                                <p class="text-[#333333] leading-relaxed" itemprop="text">
+                                    Sim! Você pode ler em qualquer dispositivo móvel. Recomendamos baixar um aplicativo de leitura como 
+                                    <strong>Google Play Livros</strong>, <strong>Apple Books</strong>, <strong>Kindle</strong> ou 
+                                    <strong>Adobe Reader</strong> e importar o arquivo baixado para uma experiência de leitura otimizada.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
                 <!-- Rating Section -->
                 <section id="rating-section" aria-labelledby="ratings-title">
                     <h2 id="ratings-title" class="text-3xl font-bold text-[#333333] mb-6">Avaliações</h2>
@@ -463,10 +468,9 @@
 
                         <!-- Already Rated Message -->
                         <div id="already-rated" class="hidden">
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                                <i class="ri-information-line text-2xl text-blue-600 mb-2"></i>
-                                <p class="text-blue-800 font-medium">Você já avaliou este livro.</p>
-                                <p class="text-blue-600 text-sm mt-1">Obrigado pela sua contribuição!</p>
+                            <div class=" border rounded-lg p-4 text-center">
+                                <p class="font-medium">Você já avaliou este livro.</p>
+                                <p class="text-sm mt-1">Obrigado pela sua contribuição!</p>
                             </div>
                         </div>
                     </div>
@@ -515,6 +519,65 @@
                         </div>
                         @endif
                 </section>
+                <!-- Author Section -->
+                @if ($book->mainAuthors->count() > 0)
+                    @foreach ($book->mainAuthors->take(1) as $author)
+                        <section id="author" aria-labelledby="author-title">
+                            <h2 id="author-title" class="text-3xl font-bold text-[#333333] mb-6">Sobre o Autor</h2>
+                            <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-200">
+                                <div class="flex flex-col md:flex-row items-start space-y-6 md:space-y-0 md:space-x-8">
+                                    @if ($author->photo_url)
+                                        <img alt="Foto de {{ $author->name }}"
+                                            class="w-32 h-32 rounded-2xl object-cover shadow-lg flex-shrink-0 mx-auto md:ml-0 md:mr-8"
+                                            src="{{ $author->photo_url }}"
+                                            loading="lazy">
+                                    @else
+                                        <div
+                                            class="w-32 h-32 rounded-2xl bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 flex items-center justify-center shadow-lg flex-shrink-0 mx-auto md:mx-0">
+                                            <i class="ri-user-line text-5xl text-[#004D40] opacity-50" role="img" aria-label="Avatar padrão"></i>
+                                        </div>
+                                    @endif
+                                    <div class="flex-1 min-[320px]:ml-4">
+                                        <h3 class="text-2xl font-semibold text-[#333333] mb-4">
+                                            <a href="{{ route('autores.show', $author->slug) }}"
+                                                class="hover:text-[#004D40] transition-colors" rel="author">
+                                                {{ $author->name }}
+                                            </a>
+                                        </h3>
+                                        @if ($author->biography)
+                                            <p class="text-[#333333] leading-relaxed mb-6">
+                                                {{ Str::limit($author->biography, 300) }}</p>
+                                        @endif
+                                        <div class="flex flex-wrap gap-6 text-sm">
+                                            <div class="flex items-center">
+                                                <i class="ri-book-line mr-2 text-[#B8860B]"></i>
+                                                <span class="font-medium">{{ $author->books->count() }} {{ $author->books->count() == 1 ? 'Obra Publicada' : 'Obras Publicadas' }}</span>
+                                            </div>
+                                            @if ($author->birth_date)
+                                                <div class="flex items-center">
+                                                    <i class="ri-calendar-line mr-2 text-[#B8860B]"></i>
+                                                    <span class="font-medium">
+                                                        {{ $author->birth_date->format('Y') }}
+                                                        @if ($author->death_date)
+                                                            - {{ $author->death_date->format('Y') }}
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            @endif
+                                            @if ($author->nationality)
+                                                <div class="flex items-center">
+                                                    <i class="ri-award-line mr-2 text-[#B8860B]"></i>
+                                                    <span class="font-medium">{{ $author->nationality }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    @endforeach
+                @endif
+
             </div>
 
             <!-- Right Column - Sidebar -->
@@ -850,6 +913,27 @@
                     <p class="${textColor} font-medium">${message}</p>
                 </div>
             `;
+        }
+
+        // FAQ Toggle Function
+        function toggleFaq(button) {
+            const answerId = button.getAttribute('aria-controls');
+            const answer = document.getElementById(answerId);
+            const icon = button.querySelector('i');
+            const isExpanded = button.getAttribute('aria-expanded') === 'true';
+            
+            // Toggle visibility
+            if (isExpanded) {
+                answer.classList.add('hidden');
+                button.setAttribute('aria-expanded', 'false');
+                icon.classList.remove('ri-arrow-up-s-line');
+                icon.classList.add('ri-arrow-down-s-line');
+            } else {
+                answer.classList.remove('hidden');
+                button.setAttribute('aria-expanded', 'true');
+                icon.classList.remove('ri-arrow-down-s-line');
+                icon.classList.add('ri-arrow-up-s-line');
+            }
         }
     </script>
 @endsection

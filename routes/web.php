@@ -96,6 +96,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/create-author', [App\Http\Controllers\Admin\JsonImportController::class, 'createAuthor'])->name('create-author');
         Route::post('/create-category', [App\Http\Controllers\Admin\JsonImportController::class, 'createCategory'])->name('create-category');
     });
+
+    // Book FAQs
+    Route::prefix('books/{book}/faqs')->name('books.faqs.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\BookFaqController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\BookFaqController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\BookFaqController::class, 'store'])->name('store');
+        Route::get('/{faq}/edit', [App\Http\Controllers\Admin\BookFaqController::class, 'edit'])->name('edit');
+        Route::put('/{faq}', [App\Http\Controllers\Admin\BookFaqController::class, 'update'])->name('update');
+        Route::delete('/{faq}', [App\Http\Controllers\Admin\BookFaqController::class, 'destroy'])->name('destroy');
+    });
 });
 
 
