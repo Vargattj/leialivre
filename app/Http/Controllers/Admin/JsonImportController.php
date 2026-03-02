@@ -243,6 +243,31 @@ class JsonImportController extends Controller
                     }
                 }
 
+                // Import Files if provided
+                if (isset($bookData['files']) && is_array($bookData['files'])) {
+                    foreach ($bookData['files'] as $fileData) {
+                        if (isset($fileData['format']) && isset($fileData['file_url'])) {
+                            $fileAttributes = [
+                                'format' => strtoupper($fileData['format']), // Normalize to uppercase
+                                'file_url' => $fileData['file_url'],
+                                'backup_url' => $fileData['backup_url'] ?? null,
+                                'size_bytes' => $fileData['size_bytes'] ?? null,
+                                'size_readable' => $fileData['size_readable'] ?? null,
+                                'md5_hash' => $fileData['md5_hash'] ?? null,
+                                'quality' => $fileData['quality'] ?? null,
+                                'is_active' => $fileData['is_active'] ?? true,
+                            ];
+
+                            $file = $book->files()->create($fileAttributes);
+
+                            // Auto-calculate readable size if bytes provided but readable not
+                            if ($fileAttributes['size_bytes'] && !$fileAttributes['size_readable']) {
+                                $file->calculateReadableSize();
+                            }
+                        }
+                    }
+                }
+
                 $imported++;
             }
 
