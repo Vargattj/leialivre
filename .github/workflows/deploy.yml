@@ -1,0 +1,54 @@
+name: Deploy Laravel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            # 1. Ativar modo manutenção
+            php artisan down --refresh=15 --retry=10
+
+            # 2. Atualizar código
+            git pull origin main
+
+            # 3. Instalar dependências PHP
+            composer install --no-dev --optimize-autoloader --no-interaction
+
+            # 4. Instalar dependências JS e compilar assets
+            npm ci --prefer-offline
+            npm run build
+
+            # 5. Rodar migrations
+            php artisan migrate --force
+
+            # 6. Limpar e recriar caches
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+
+            # 7. Reiniciar filas (se usar)
+            php artisan queue:restart
+
+            # 8. Ajustar permissões
+            chmod -R 775 storage bootstrap/cache
+            chown -R $USER:www-data storage bootstrap/cache
+
+            # 9. Sair do modo manutenção
+            php artisan up
