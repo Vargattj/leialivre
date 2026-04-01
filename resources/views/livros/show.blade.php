@@ -537,6 +537,7 @@
                                         <img alt="Foto de {{ $author->name }}"
                                             class="w-32 h-32 rounded-2xl object-cover shadow-lg flex-shrink-0 mx-auto md:ml-0 md:mr-8"
                                             src="{{ $author->photo_url }}"
+                                            onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($author->name) }}&color=004D40&background=e6f0ee&size=200';"
                                             loading="lazy">
                                     @else
                                         <div

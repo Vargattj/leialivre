@@ -5,8 +5,9 @@
         @if($author->photo_url)
             <img 
                 alt="{{ $author->name }} - Foto do autor{{ $author->nationality ? ' (' . $author->nationality . ')' : '' }}" 
-                class="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg" 
+                class="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg bg-gray-100" 
                 src="{{ $author->photo_url }}"
+                onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ urlencode($author->name) }}&color=004D40&background=e6f0ee&size=200';"
                 loading="lazy"
                 width="128"
                 height="128"
