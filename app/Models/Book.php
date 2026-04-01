@@ -8,6 +8,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Book extends Model
@@ -31,6 +32,8 @@ class Book extends Model
         'public_domain_justification',
         'cover_url',
         'cover_thumbnail_url',
+        'generated_cover_path',
+        'use_generated_cover',
         'total_downloads',
         'views',
         'average_rating',
@@ -66,6 +69,7 @@ class Book extends Model
         'is_public_domain' => 'boolean',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
+        'use_generated_cover' => 'boolean',
         'average_rating' => 'decimal:2',
         'google_books_categories' => 'array',
         'google_books_average_rating' => 'decimal:2',
@@ -248,6 +252,23 @@ class Book extends Model
     public function getAvailableFormatsAttribute()
     {
         return $this->activeFiles->pluck('format')->unique()->values();
+    }
+
+    /**
+     * Retorna sempre a URL correta da capa, com fallback para imagem gerada e placeholder.
+     */
+    public function getCoverAttribute(): string
+    {
+        // If they explicitly want to use generated cover (or if they don't have a cover_url)
+        if (($this->use_generated_cover || empty($this->cover_url)) && $this->generated_cover_path && Storage::disk('public')->exists($this->generated_cover_path)) {
+            return Storage::disk('public')->url($this->generated_cover_path);
+        }
+
+        if ($this->cover_url) {
+            return $this->cover_url;
+        }
+
+        return asset('images/cover-placeholder.webp');
     }
 
     // Utility methods

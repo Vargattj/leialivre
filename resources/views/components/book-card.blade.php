@@ -3,20 +3,14 @@
 <div class="bg-white rounded-lg shadow-md border border-gray-100 p-6 hover:shadow-lg transition-shadow duration-300 h-full">
     <div class="flex flex-col h-full">
         <div class="flex gap-4 mb-4">
-            @if($book->cover_thumbnail_url || $book->cover_url)
-                <img 
-                    alt="{{ $book->title }} - Capa do livro{{ $book->mainAuthors->count() > 0 ? ' de ' . $book->mainAuthors->first()->name : '' }}" 
-                    class="w-24 h-36 object-contain rounded-lg shadow-md" 
-                    src="{{ $book->cover_thumbnail_url ?? $book->cover_url }}"
-                    loading="lazy"
-                    width="96"
-                    height="144"
-                >
-            @else
-                <div class="w-24 h-36 bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 rounded-lg flex items-center justify-center">
-                    <span class="text-4xl opacity-50">📚</span>
-                </div>
-            @endif
+            <img 
+                alt="{{ $book->title }} - Capa do livro{{ $book->mainAuthors->count() > 0 ? ' de ' . $book->mainAuthors->first()->name : '' }}" 
+                class="w-24 h-36 object-contain rounded-lg shadow-md" 
+                src="{{ $book->cover_thumbnail_url ?? $book->cover }}"
+                loading="lazy"
+                width="96"
+                height="144"
+            >
             <div class="flex-1">
                 <h3 class="text-xl font-bold text-[#333333] mb-2 line-clamp-2">
                     <a href="{{ route('livros.show', $book->slug) }}" class="hover:text-[#004D40] transition-colors">

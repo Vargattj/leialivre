@@ -74,6 +74,8 @@ class BookController extends Controller
             $path = $request->file('cover')->store('covers', 'public');
             $validated['cover_url'] = Storage::url($path);
         }
+        
+        $validated['use_generated_cover'] = $request->boolean('use_generated_cover');
 
         // Create Book
         $book = Book::create($validated);
@@ -152,6 +154,8 @@ class BookController extends Controller
             $path = $request->file('cover')->store('covers', 'public');
             $validated['cover_url'] = Storage::url($path);
         }
+        
+        $validated['use_generated_cover'] = $request->boolean('use_generated_cover');
 
         $book->update($validated);
 

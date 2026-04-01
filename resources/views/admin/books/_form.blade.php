@@ -253,6 +253,21 @@
             <input type="file" name="cover" accept="image/*"
                 class="bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
         </div>
+        
+        <div class="mt-4 flex items-start">
+            <div class="flex items-center h-5">
+                <input id="use_generated_cover" name="use_generated_cover" type="checkbox" value="1"
+                    {{ old('use_generated_cover', $book->use_generated_cover ?? false) ? 'checked' : '' }}
+                    class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+            </div>
+            <div class="ml-3 text-sm">
+                <label for="use_generated_cover" class="font-medium text-gray-700">Usar capa gerada automaticamente</label>
+                <p class="text-gray-500">Marca esta opção para ignorar a imagem acima e utilizar a capa renderizada pelo sistema.</p>
+                @if(isset($book) && $book->generated_cover_path)
+                    <p class="text-xs text-blue-600 mt-1"><a href="{{ Storage::url($book->generated_cover_path) }}" target="_blank">Ver capa gerada atual</a></p>
+                @endif
+            </div>
+        </div>
     </div>
 
     <!-- Arquivos (Downloads) -->

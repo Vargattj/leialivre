@@ -283,7 +283,7 @@
             <form class="max-w-md mx-auto" id="newsletter-subscription">
                 <div class="flex flex-col sm:flex-row gap-4">
                     <input placeholder="Digite seu endereço de e-mail" required
-                        class="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B8860B] focus:border-transparent text-[#333333]"
+                        class="flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#B8860B] focus:border-transparent text-gray-300"
                         type="email" name="email">
                     <button
                         class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#B8860B] text-white hover:bg-[#DAA520] focus:ring-2 focus:ring-[#B8860B]/20 px-6 py-3 text-lg rounded-lg"

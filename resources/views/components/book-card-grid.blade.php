@@ -3,17 +3,11 @@
 <div class="bg-white rounded-lg shadow-md border border-gray-100 overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300">
     <a href="{{ route('livros.show', $book->slug) }}">
     <div class="relative overflow-hidden">
-        @if($book->cover_thumbnail_url || $book->cover_url)
-            <img 
-                alt="{{ $book->title }}" 
-                class="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-300" 
-                src="{{ $book->cover_thumbnail_url ?? $book->cover_url }}"
-            >
-        @else
-            <div class="w-full h-64 bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 flex items-center justify-center">
-                <span class="text-6xl opacity-50">📚</span>
-            </div>
-        @endif
+        <img 
+            alt="{{ $book->title }}" 
+            class="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-300" 
+            src="{{ $book->cover_thumbnail_url ?? $book->cover }}"
+        >
         
         @if($book->categories->count() > 0)
             <div class="absolute top-3 right-3">

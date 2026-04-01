@@ -16,7 +16,7 @@
     <x-seo-meta
         title="{{ $book->title }} - {{ $book->mainAuthors->pluck('name')->join(', ') }} - Pdf, Epub, Mobi"
         description="{{ Str::limit('Baixe o livro ' . $book->title . ' de ' . $book->mainAuthors->pluck('name')->join(', ') . ' gratuitamente em domínio público. Disponível em PDF, EPUB e MOBI.', 155) }}"
-        :image="$book->cover_url ?? $book->cover_thumbnail_url"
+        :image="$book->cover"
         :author="$book->mainAuthors->pluck('name')->join(', ')"
         type="book"
         :jsonLd="[
@@ -26,7 +26,7 @@
                     'name' => $book->title,
                     'url' => route('livros.show', $book->slug),
                     'author' => $book->mainAuthors->map(fn($a) => ['@type' => 'Person', 'name' => $a->name, 'url' => route('autores.show', $a->slug)])->toArray(),
-                    'image' => $book->cover_url ?? $book->cover_thumbnail_url,
+                    'image' => $book->cover,
                     'description' => $book->synopsis,
                     'genre' => $book->categories->pluck('name')->toArray(),
                     'datePublished' => $book->publication_year,
@@ -52,6 +52,11 @@
             ]
         ]"
     />
+    {{-- Meta tags Open Graph para capa do livro --}}
+    <meta property="og:image" content="{{ $book->cover }}" />
+    <meta property="og:image:width" content="800" />
+    <meta property="og:image:height" content="1200" />
+    <meta property="og:image:alt" content="Capa de {{ $book->title }}, de {{ $book->mainAuthors->pluck('name')->join(', ') }}" />
 @endsection
 
 @section('content')
@@ -108,10 +113,12 @@
                 <!-- Cover -->
                 <div class="lg:col-span-2">
                     <div class="text-center">
-                        @if ($book->cover_url || $book->cover_thumbnail_url)
+                        @if ($book->cover_url || $book->cover_thumbnail_url || $book->generated_cover_path)
                             <img alt="Capa do livro {{ $book->title }}" itemprop="image"
                                 class="w-1/2 lg:w-[300px] lg:max-w-[300px] mx-auto rounded-xl shadow-2xl object-cover"
-                                src="{{ $book->cover_url ?? $book->cover_thumbnail_url }}"
+                                src="{{ $book->cover }}"
+                                width="400"
+                                height="600"
                                 fetchpriority="high">
                         @else
                             <div
