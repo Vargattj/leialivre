@@ -255,6 +255,20 @@ class Book extends Model
     }
 
     /**
+     * Retorna a URL correta para o card/miniatura, respeitando a capa gerada.
+     */
+    public function getCoverThumbAttribute(): string
+    {
+        // Se tiver a miniatura original e NÃO estivermos forçando a usar a capa gerada
+        if ($this->cover_thumbnail_url && !$this->use_generated_cover) {
+            return $this->cover_thumbnail_url;
+        }
+
+        // Caso contrário, usamos a lógica completa de fallback da capa principal
+        return $this->cover;
+    }
+
+    /**
      * Retorna sempre a URL correta da capa, com fallback para imagem gerada e placeholder.
      */
     public function getCoverAttribute(): string

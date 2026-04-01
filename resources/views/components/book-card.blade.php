@@ -6,7 +6,7 @@
             <img 
                 alt="{{ $book->title }} - Capa do livro{{ $book->mainAuthors->count() > 0 ? ' de ' . $book->mainAuthors->first()->name : '' }}" 
                 class="w-24 h-36 object-contain rounded-lg shadow-md" 
-                src="{{ $book->cover_thumbnail_url ?? $book->cover }}"
+                src="{{ $book->cover_thumb }}"
                 loading="lazy"
                 width="96"
                 height="144"

@@ -157,15 +157,9 @@
                                 <div class="flex flex-col h-full">
                                     <!-- Capa do Livro -->
                                     <div class="mb-4">
-                                        @if ($livro->cover_thumbnail_url || $livro->cover_url)
-                                            <img alt="{{ $livro->title }}" 
-                                                class="w-1/2 lg:w-full h-64 object-contain rounded-lg mb-4 mx-auto"
-                                                src="{{ $livro->cover_thumbnail_url ?? $livro->cover_url }}">
-                                        @else
-                                            <div class="w-1/2 lg:w-full h-64 bg-gradient-to-br from-[#004D40]/10 to-[#B8860B]/10 rounded-lg mb-4 flex items-center justify-center mx-auto">
-                                                <span class="text-6xl opacity-50">📚</span>
-                                            </div>
-                                        @endif
+                                        <img alt="{{ $livro->title }}" 
+                                            class="w-1/2 lg:w-full h-64 object-contain rounded-lg mb-4 mx-auto"
+                                            src="{{ $livro->cover_thumb }}">
                                         
                                         <h3 class="text-xl font-bold text-[#333333] mb-2">
                                             <a href="{{ route('livros.show', $livro->slug) }}" class="hover:text-[#004D40] transition-colors">

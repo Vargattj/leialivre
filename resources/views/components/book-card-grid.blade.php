@@ -6,7 +6,7 @@
         <img 
             alt="{{ $book->title }}" 
             class="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-300" 
-            src="{{ $book->cover_thumbnail_url ?? $book->cover }}"
+            src="{{ $book->cover_thumb }}"
         >
         
         @if($book->categories->count() > 0)
