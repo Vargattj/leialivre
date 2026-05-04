@@ -52,7 +52,7 @@ class AuthorController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('authors', 'public');
+            $path = $request->file('photo')->store('authors');
             $validated['photo_url'] = Storage::url($path);
         }
 
@@ -108,10 +108,10 @@ class AuthorController extends Controller
             // Delete old photo if exists
             if ($author->photo_url) {
                 $oldPath = str_replace('/storage/', '', $author->photo_url);
-                Storage::disk('public')->delete($oldPath);
+                Storage::delete($oldPath);
             }
 
-            $path = $request->file('photo')->store('authors', 'public');
+            $path = $request->file('photo')->store('authors');
             $validated['photo_url'] = Storage::url($path);
         }
 
@@ -132,7 +132,7 @@ class AuthorController extends Controller
 
         if ($author->photo_url) {
             $oldPath = str_replace('/storage/', '', $author->photo_url);
-            Storage::disk('public')->delete($oldPath);
+            Storage::delete($oldPath);
         }
 
         $author->delete();

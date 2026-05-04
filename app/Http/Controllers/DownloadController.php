@@ -20,8 +20,8 @@ class DownloadController extends Controller
         $file->recordDownload();
 
         // If file is in local storage
-        if (Storage::disk('public')->exists($file->file_url)) {
-            return Storage::disk('public')->download($file->file_url);
+        if (Storage::exists($file->file_url)) {
+            return Storage::download($file->file_url);
         }
 
         // If external URL, redirect

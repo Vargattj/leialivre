@@ -90,13 +90,13 @@ class DiagnoseCovers extends Command
             // Verificar existe no disco
             $genPath = $book->getRawOriginal('generated_cover_path');
             if ($genPath) {
-                $exists = Storage::disk('public')->exists($genPath);
+                $exists = Storage::exists($genPath);
                 $realPath = storage_path('app/public/' . $genPath);
                 $this->line('   Arquivo existe (disk)      : ' . ($exists ? '<fg=green>✓ SIM</>' : '<fg=red>✗ NÃO</>'));
                 $this->line('   Caminho físico             : ' . $realPath);
                 $this->line('   Caminho físico existe?     : ' . (file_exists($realPath) ? '<fg=green>✓ SIM</>' : '<fg=red>✗ NÃO</>'));
                 if ($exists) {
-                    $url = Storage::disk('public')->url($genPath);
+                    $url = Storage::url($genPath);
                     $this->line('   URL gerada (disk)          : ' . $url);
                 }
             } else {

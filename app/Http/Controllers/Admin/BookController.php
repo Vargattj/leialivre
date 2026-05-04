@@ -71,7 +71,7 @@ class BookController extends Controller
 
         // Handle Cover
         if ($request->hasFile('cover')) {
-            $path = $request->file('cover')->store('covers', 'public');
+            $path = $request->file('cover')->store('covers');
             $validated['cover_url'] = Storage::url($path);
         }
         
@@ -149,9 +149,9 @@ class BookController extends Controller
         if ($request->hasFile('cover')) {
             if ($book->cover_url) {
                 $oldPath = str_replace('/storage/', '', $book->cover_url);
-                Storage::disk('public')->delete($oldPath);
+                Storage::delete($oldPath);
             }
-            $path = $request->file('cover')->store('covers', 'public');
+            $path = $request->file('cover')->store('covers');
             $validated['cover_url'] = Storage::url($path);
         }
         
@@ -197,7 +197,7 @@ class BookController extends Controller
     {
         if ($book->cover_url) {
             $oldPath = str_replace('/storage/', '', $book->cover_url);
-            Storage::disk('public')->delete($oldPath);
+            Storage::delete($oldPath);
         }
 
         $book->files()->delete();

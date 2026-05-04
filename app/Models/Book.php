@@ -274,8 +274,8 @@ class Book extends Model
     public function getCoverAttribute(): string
     {
         // If they explicitly want to use generated cover (or if they don't have a cover_url)
-        if (($this->use_generated_cover || empty($this->cover_url)) && $this->generated_cover_path && Storage::disk('public')->exists($this->generated_cover_path)) {
-            return Storage::disk('public')->url($this->generated_cover_path);
+        if (($this->use_generated_cover || empty($this->cover_url)) && $this->generated_cover_path && Storage::exists($this->generated_cover_path)) {
+            return Storage::url($this->generated_cover_path);
         }
 
         if ($this->cover_url) {
