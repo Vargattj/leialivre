@@ -279,6 +279,13 @@
                                 <i class="ri-download-cloud-line mr-3 text-xl"></i>
                                 Baixar Formato {{ $selectedFormat->format }}
                             </a>
+                            @if ($book->purchase_url)
+                                <a href="{{ $book->purchase_url }}" target="_blank" rel="noopener noreferrer sponsored"
+                                    class="inline-flex items-center justify-center gap-2 font-medium text-base py-3 px-6 rounded-xl border-2 border-[#004D40] text-[#004D40] hover:bg-[#004D40] hover:text-white transition-all duration-200 w-full mt-3">
+                                    <i class="ri-shopping-cart-line text-lg"></i>
+                                    Comprar Edição Física
+                                </a>
+                            @endif
                             <p id="downloadInfo" class="text-sm text-gray-600 mt-3 text-center">
                                 Download gratuito • Sem necessidade de registro
                                 @if ($selectedFormat->size_readable)

@@ -46,9 +46,5 @@ jobs:
             # 7. Reiniciar filas (se usar)
             php artisan queue:restart
 
-            # 8. Ajustar permissões
-            chmod -R 775 storage bootstrap/cache
-            chown -R $USER:www-data storage bootstrap/cache
-
             # 9. Sair do modo manutenção
             php artisan up

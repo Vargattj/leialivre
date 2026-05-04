@@ -63,6 +63,7 @@ class BookController extends Controller
             'authors.*' => 'exists:authors,id',
             'categories' => 'required|array',
             'categories.*' => 'exists:categories,id',
+            'purchase_url' => 'nullable|url|max:2048',
             // Files validation
             'files' => 'nullable|array',
             'files.*.format' => 'required|string|in:PDF,EPUB,MOBI,TXT',
@@ -142,6 +143,7 @@ class BookController extends Controller
             'authors.*' => 'exists:authors,id',
             'categories' => 'required|array',
             'categories.*' => 'exists:categories,id',
+            'purchase_url' => 'nullable|url|max:2048',
             // Files validation handled manually for simplicity in update
         ]);
 

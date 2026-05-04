@@ -40,6 +40,7 @@ class Book extends Model
         'total_ratings',
         'is_featured',
         'is_active',
+        'purchase_url',
         // Google Books fields
         'google_books_description',
         'google_books_categories',

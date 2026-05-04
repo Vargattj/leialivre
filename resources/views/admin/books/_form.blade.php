@@ -270,6 +270,17 @@
         </div>
     </div>
 
+    <!-- Link de Compra -->
+    <div class="col-span-2">
+        <label for="purchase_url" class="block text-sm font-medium text-gray-700">Link de Compra <span class="text-gray-400 font-normal">(opcional)</span></label>
+        <input type="url" name="purchase_url" id="purchase_url"
+            value="{{ old('purchase_url', $book->purchase_url ?? '') }}"
+            placeholder="https://exemplo.com/comprar-livro"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+        <p class="text-xs text-gray-500 mt-1">Se preenchido, um botão "Comprar" será exibido na página pública do livro, redirecionando para este link.</p>
+        @error('purchase_url') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+    </div>
+
     <!-- Arquivos (Downloads) -->
     <div class="col-span-2 border-t pt-6 mt-4">
         <h3 class="text-lg font-medium text-gray-900 mb-4">Arquivos de Download</h3>
