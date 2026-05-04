@@ -42,6 +42,12 @@
                     <span class="mx-3">Dashboard</span>
                 </a>
 
+                <a href="{{ route('admin.analytics') }}"
+                    class="flex items-center px-6 py-2 mt-4 text-gray-100 {{ request()->routeIs('admin.analytics') ? 'bg-gray-700 bg-opacity-25 border-l-4 border-blue-500' : 'hover:bg-gray-700 hover:bg-opacity-25 hover:text-gray-100' }}">
+                    <i class="ri-bar-chart-2-line text-xl"></i>
+                    <span class="mx-3">Analytics</span>
+                </a>
+
                 <a href="{{ route('admin.authors.index') }}"
                     class="flex items-center px-6 py-2 mt-4 text-gray-100 {{ request()->routeIs('admin.authors.*') ? 'bg-gray-700 bg-opacity-25 border-l-4 border-blue-500' : 'hover:bg-gray-700 hover:bg-opacity-25 hover:text-gray-100' }}">
                     <i class="ri-quill-pen-line text-xl"></i>
