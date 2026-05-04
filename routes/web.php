@@ -42,6 +42,9 @@ Route::prefix('download')->name('download.')->group(function () {
     Route::get('/book/{bookId}/{format}', [DownloadController::class, 'downloadByFormat'])->name('format');
 });
 
+// Tracking
+Route::post('/track/event', [App\Http\Controllers\TrackingController::class, 'track'])->name('track.event');
+
 // Ratings
 Route::prefix('ratings')->name('ratings.')->group(function () {
     Route::post('/book/{bookId}', [App\Http\Controllers\RatingController::class, 'store'])->name('store');

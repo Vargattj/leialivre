@@ -41,6 +41,7 @@ class Book extends Model
         'is_featured',
         'is_active',
         'purchase_url',
+        'purchase_clicks',
         // Google Books fields
         'google_books_description',
         'google_books_categories',

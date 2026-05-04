@@ -19,6 +19,13 @@ class DownloadController extends Controller
         // Record the download
         $file->recordDownload();
 
+        \App\Models\AnalyticsEvent::create([
+            'event_type' => 'file_download',
+            'book_id'    => $file->book_id,
+            'file_id'    => $file->id,
+            'ip_address' => request()->ip(),
+        ]);
+
         // If file is in local storage
         if (Storage::disk('public')->exists($file->file_url)) {
             return Storage::disk('public')->download($file->file_url);

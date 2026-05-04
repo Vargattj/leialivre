@@ -57,6 +57,58 @@ class AnalyticsController extends Controller
             ->limit(10)
             ->get();
 
+        // ── Top 10 livros mais clicados (Compra) ─────────────────────────
+        $topClickedBooks = Book::with(['mainAuthors'])
+            ->where('purchase_clicks', '>', 0)
+            ->orderByDesc('purchase_clicks')
+            ->limit(10)
+            ->get();
+
+        // ── Métricas de Clicks em Compra (Total) ─────────────────────────
+        $clicksTotal = Book::sum('purchase_clicks');
+
+        // ── Dados por Período ──────────────────────────────────────────────
+        $now = now();
+        
+        $downloadsToday = \App\Models\AnalyticsEvent::where('event_type', 'file_download')->whereDate('created_at', $now->toDateString())->count();
+        $viewsToday     = \App\Models\AnalyticsEvent::where('event_type', 'book_view')->whereDate('created_at', $now->toDateString())->count();
+        $clicksToday    = \App\Models\AnalyticsEvent::where('event_type', 'purchase_click')->whereDate('created_at', $now->toDateString())->count();
+
+        $downloadsWeek  = \App\Models\AnalyticsEvent::where('event_type', 'file_download')->where('created_at', '>=', $now->copy()->startOfWeek())->count();
+        $viewsWeek      = \App\Models\AnalyticsEvent::where('event_type', 'book_view')->where('created_at', '>=', $now->copy()->startOfWeek())->count();
+        $clicksWeek     = \App\Models\AnalyticsEvent::where('event_type', 'purchase_click')->where('created_at', '>=', $now->copy()->startOfWeek())->count();
+
+        $downloadsMonth = \App\Models\AnalyticsEvent::where('event_type', 'file_download')->where('created_at', '>=', $now->copy()->startOfMonth())->count();
+        $viewsMonth     = \App\Models\AnalyticsEvent::where('event_type', 'book_view')->where('created_at', '>=', $now->copy()->startOfMonth())->count();
+        $clicksMonth    = \App\Models\AnalyticsEvent::where('event_type', 'purchase_click')->where('created_at', '>=', $now->copy()->startOfMonth())->count();
+
+        // Helper function for period breakdowns (Top 5)
+        $getPeriodBreakdown = function ($startDate) {
+            $books = \App\Models\AnalyticsEvent::where('analytics_events.event_type', 'file_download')
+                ->where('analytics_events.created_at', '>=', $startDate)
+                ->select('analytics_events.book_id', DB::raw('count(*) as total'))
+                ->groupBy('analytics_events.book_id')->orderByDesc('total')->limit(5)->with('book')->get();
+
+            $categories = \App\Models\AnalyticsEvent::where('analytics_events.event_type', 'file_download')
+                ->where('analytics_events.created_at', '>=', $startDate)
+                ->join('book_category', 'analytics_events.book_id', '=', 'book_category.book_id')
+                ->join('categories', 'book_category.category_id', '=', 'categories.id')
+                ->select('categories.name', DB::raw('count(*) as total'))
+                ->groupBy('categories.id', 'categories.name')->orderByDesc('total')->limit(5)->get();
+
+            $formats = \App\Models\AnalyticsEvent::where('analytics_events.event_type', 'file_download')
+                ->where('analytics_events.created_at', '>=', $startDate)
+                ->join('files', 'analytics_events.file_id', '=', 'files.id')
+                ->select('files.format', DB::raw('count(*) as total'))
+                ->groupBy('files.format')->orderByDesc('total')->limit(5)->get();
+
+            return compact('books', 'categories', 'formats');
+        };
+
+        $breakdownToday = $getPeriodBreakdown($now->toDateString());
+        $breakdownWeek  = $getPeriodBreakdown($now->copy()->startOfWeek());
+        $breakdownMonth = $getPeriodBreakdown($now->copy()->startOfMonth());
+
         // ── Avaliações mais recentes ──────────────────────────────────────
         $recentRatings = Rating::with('book')
             ->orderByDesc('created_at')
@@ -108,6 +160,12 @@ class AnalyticsController extends Controller
             'downloadsByCategory',
             'conversionRate',
             'filesByFormat',
+            'topClickedBooks',
+            'clicksTotal',
+            'downloadsToday', 'viewsToday', 'clicksToday',
+            'downloadsWeek', 'viewsWeek', 'clicksWeek',
+            'downloadsMonth', 'viewsMonth', 'clicksMonth',
+            'breakdownToday', 'breakdownWeek', 'breakdownMonth'
         ));
     }
 }

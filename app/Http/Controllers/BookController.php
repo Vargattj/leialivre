@@ -83,6 +83,12 @@ class BookController extends Controller
         // Increment views
         $book->incrementViews();
 
+        \App\Models\AnalyticsEvent::create([
+            'event_type' => 'book_view',
+            'book_id'    => $book->id,
+            'ip_address' => request()->ip(),
+        ]);
+
         return view('livros.show', compact('book'));
     }
 
