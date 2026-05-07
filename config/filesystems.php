@@ -69,6 +69,7 @@ return [
             'url' => env('CLOUDFLARE_R2_URL'),
             'endpoint' => env('CLOUDFLARE_R2_ENDPOINT'),
             'use_path_style_endpoint' => env('CLOUDFLARE_R2_USE_PATH_STYLE_ENDPOINT', true),
+            'root' => env('CLOUDFLARE_R2_ROOT', ''),
             'throw' => false,
             'report' => false,
         ],
