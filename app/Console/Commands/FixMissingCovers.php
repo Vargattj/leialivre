@@ -36,7 +36,7 @@ class FixMissingCovers extends Command
         $missing = $books->filter(function ($book) {
             $path = $book->getRawOriginal('generated_cover_path');
             if (!$path) return true;
-            return !Storage::disk('public')->exists($path);
+            return !Storage::exists($path);
         });
 
         $this->info("Livros com use_generated_cover = true : {$books->count()}");

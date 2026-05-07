@@ -39,7 +39,7 @@ class GenerateAllCovers extends Command
         $bar->start();
 
         // Garante que a pasta de destino existe
-        Storage::disk('public')->makeDirectory('covers');
+        Storage::makeDirectory('covers');
 
         $dispatched = 0;
 

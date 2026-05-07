@@ -393,7 +393,7 @@ class JsonImportController extends Controller
             $path = $directory . '/' . $filename;
 
             // Save to storage
-            Storage::disk('public')->put($path, $imageContent);
+            Storage::put($path, $imageContent);
 
             // Return the public URL
             return Storage::url($path);

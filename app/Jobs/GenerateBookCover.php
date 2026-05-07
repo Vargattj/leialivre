@@ -62,6 +62,20 @@ class GenerateBookCover implements ShouldQueue
             return;
         }
 
+        $localPath = storage_path("app/public/covers/{$book->slug}.webp");
+
+        if (file_exists($localPath)) {
+            // Faz o upload do arquivo gerado para o Storage padrão (R2)
+            \Illuminate\Support\Facades\Storage::put(
+                "covers/{$book->slug}.webp",
+                file_get_contents($localPath),
+                'public'
+            );
+
+            // Remove o arquivo local temporário
+            unlink($localPath);
+        }
+
         $book->generated_cover_path = "covers/{$book->slug}.webp";
         $book->saveQuietly();
 
