@@ -1,14 +1,10 @@
 <?php
 
-
-// ============================================
-// app/Models/File.php
-// ============================================
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class File extends Model
 {
@@ -20,6 +16,7 @@ class File extends Model
         'size_bytes',
         'size_readable',
         'file_url',
+        'storage_path',
         'backup_url',
         'md5_hash',
         'quality',
@@ -32,12 +29,14 @@ class File extends Model
     ];
 
     // Relationships
+
     public function book()
     {
         return $this->belongsTo(Book::class);
     }
 
     // Scopes
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
@@ -49,6 +48,7 @@ class File extends Model
     }
 
     // Utility methods
+
     public function recordDownload()
     {
         $this->increment('total_downloads');
@@ -76,14 +76,36 @@ class File extends Model
         return $this->size_readable;
     }
 
+    /**
+     * Retorna a URL de acesso ao arquivo.
+     * Arquivos no bucket têm prioridade sobre links externos.
+     */
+    public function getDownloadUrlAttribute(): ?string
+    {
+        if ($this->storage_path) {
+            return Storage::disk('r2')->url($this->storage_path);
+        }
+
+        return $this->file_url;
+    }
+
+    /**
+     * Indica se o arquivo está armazenado no bucket R2.
+     */
+    public function getIsStoredInBucketAttribute(): bool
+    {
+        return !empty($this->storage_path);
+    }
+
     // Accessor for format icon
+
     public function getFormatIconAttribute()
     {
         return match(strtoupper($this->format)) {
-            'PDF' => '📄',
+            'PDF'  => '📄',
             'EPUB' => '📘',
             'MOBI' => '📗',
-            'TXT' => '📝',
+            'TXT'  => '📝',
             default => '📦',
         };
     }

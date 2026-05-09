@@ -229,28 +229,24 @@
                     <!-- Download Section -->
                     @if ($book->activeFiles->count() > 0)
                         @php
-                            // Ordem de preferência dos formatos (do mais popular para o menos popular)
                             $formatPriority = [
-                                'PDF' => 1,
-                                'EPUB' => 2,
-                                'MOBI' => 3,
-                                'AZW' => 4,
-                                'AZW3' => 5,
-                                'TXT' => 6,
-                                'RTF' => 7,
-                                'DOC' => 8,
-                                'DOCX' => 9,
-                                'HTML' => 10,
-                                'HTM' => 11,
-                                'ZIP' => 12,
+                                'PDF'  => 1, 'EPUB' => 2, 'MOBI' => 3,
+                                'AZW'  => 4, 'AZW3' => 5, 'TXT'  => 6,
+                                'RTF'  => 7, 'DOC'  => 8, 'DOCX' => 9,
+                                'HTML' => 10, 'HTM' => 11, 'ZIP'  => 12,
                             ];
-                            
-                            // Ordenar arquivos por prioridade
-                            $sortedFiles = $book->activeFiles->sortBy(function ($file) use ($formatPriority) {
-                                $format = strtoupper($file->format);
-                                return $formatPriority[$format] ?? 999; // Formatos não listados vão para o final
+
+                            // Para cada formato, priorizar arquivo do bucket sobre URL externa
+                            $deduplicatedFiles = $book->activeFiles
+                                ->groupBy(fn($f) => strtoupper($f->format))
+                                ->map(fn($group) => $group->sortByDesc(fn($f) => $f->is_stored_in_bucket ? 1 : 0)->first())
+                                ->values();
+
+                            // Ordenar por prioridade de formato
+                            $sortedFiles = $deduplicatedFiles->sortBy(function ($file) use ($formatPriority) {
+                                return $formatPriority[strtoupper($file->format)] ?? 999;
                             })->values();
-                            
+
                             $selectedFormat = $sortedFiles->first();
                         @endphp
                         <div class="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-gray-200">
@@ -259,10 +255,11 @@
                                 <div class="flex flex-wrap gap-3">
                                     @foreach ($sortedFiles as $file)
                                         <button
-                                            onclick="selectFormat('{{ $file->format }}', '{{ $file->id }}', '{{ route('download.file', $file->id) }}', '{{ $file->size_readable ?? '' }}')"
+                                            onclick="selectFormat('{{ $file->format }}', '{{ $file->id }}', '{{ route('download.file', $file->id) }}', '{{ $file->size_readable ?? '' }}', {{ $file->is_stored_in_bucket ? 'true' : 'false' }})"
                                             class="format-btn px-4 py-2 text-sm rounded-lg border transition-all duration-200 {{ $file->id === $selectedFormat->id ? 'bg-[#004D40] text-white border-[#004D40] shadow-lg' : 'bg-white text-[#333333] border-gray-300 hover:border-[#004D40] hover:shadow-md' }}"
                                             data-format="{{ $file->format }}" data-file-id="{{ $file->id }}"
                                             data-download-url="{{ route('download.file', $file->id) }}"
+                                            data-is-bucket="{{ $file->is_stored_in_bucket ? '1' : '0' }}"
                                             data-size="{{ $file->size_readable ?? '' }}">
                                             <span class="font-medium">{{ $file->format }}</span>
                                             @if ($file->size_readable)
@@ -272,13 +269,18 @@
                                     @endforeach
                                 </div>
                             </div>
-                            <a id="downloadBtn" href="{{ route('download.file', $selectedFormat->id) }}"
-                                onclick="trackDownload('{{ $book->id }}', {{ json_encode($book->title) }}, this.dataset.format)"
+                            <button id="downloadBtn"
+                                type="button"
+                                onclick="handleDownload(this)"
                                 data-format="{{ $selectedFormat->format }}"
-                                class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#B8860B] hover:bg-[#A0750A] text-white text-lg py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 w-full">
+                                data-download-url="{{ route('download.file', $selectedFormat->id) }}"
+                                data-is-bucket="{{ $selectedFormat->is_stored_in_bucket ? '1' : '0' }}"
+                                data-book-id="{{ $book->id }}"
+                                data-book-title="{{ addslashes($book->title) }}"
+                                class="inline-flex items-center justify-center font-medium cursor-pointer whitespace-nowrap bg-[#B8860B] hover:bg-[#A0750A] text-white text-lg py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 w-full">
                                 <i class="ri-download-cloud-line mr-3 text-xl"></i>
                                 Baixar Formato {{ $selectedFormat->format }}
-                            </a>
+                            </button>
                             @if ($book->purchase_url)
                                 <a href="{{ $book->purchase_url }}" target="_blank" rel="noopener noreferrer sponsored"
                                     onclick="trackPurchaseClick('{{ $book->id }}')"
@@ -723,36 +725,36 @@
     </div>
     </article>
 
+    <x-download-popup />
+
     <script>
-        function selectFormat(format, fileId, downloadUrl, size) {
-            // Update button styles
+        // ──────────────────────────────────────────────
+        // selectFormat
+        // ──────────────────────────────────────────────
+        function selectFormat(format, fileId, downloadUrl, size, isBucket) {
+            // Atualizar estilos dos botões de formato
             document.querySelectorAll('.format-btn').forEach(btn => {
                 btn.classList.remove('bg-[#004D40]', 'text-white', 'border-[#004D40]', 'shadow-lg');
                 btn.classList.add('bg-white', 'text-[#333333]', 'border-gray-300');
             });
 
-            // Highlight selected format
             const selectedBtn = document.querySelector(`[data-file-id="${fileId}"]`);
             selectedBtn.classList.remove('bg-white', 'text-[#333333]', 'border-gray-300');
             selectedBtn.classList.add('bg-[#004D40]', 'text-white', 'border-[#004D40]', 'shadow-lg');
 
-            // Update download button
+            // Atualizar botão de download principal
             const downloadBtn = document.getElementById('downloadBtn');
-            downloadBtn.href = downloadUrl;
-            downloadBtn.dataset.format = format;
-            
-            // Update button text and size info
-            let sizeText = size ? ` • ${size}` : '';
+            downloadBtn.dataset.downloadUrl = downloadUrl;
+            downloadBtn.dataset.format      = format;
+            downloadBtn.dataset.isBucket    = isBucket ? '1' : '0';
             downloadBtn.innerHTML = `<i class="ri-download-cloud-line mr-3 text-xl"></i>Baixar Formato ${format}`;
-            
-            // Update size info below button
-            const sizeInfo = document.querySelector('#downloadBtn').nextElementSibling;
+
+            // Atualizar texto de info
+            const sizeInfo = downloadBtn.nextElementSibling;
             if (sizeInfo && sizeInfo.tagName === 'P') {
-                let sizeInfoText = 'Download gratuito • Sem necessidade de registro';
-                if (size) {
-                    sizeInfoText += ` • ${size}`;
-                }
-                sizeInfo.textContent = sizeInfoText;
+                let text = 'Download gratuito • Sem necessidade de registro';
+                if (size) text += ` • ${size}`;
+                sizeInfo.textContent = text;
             }
         }
 

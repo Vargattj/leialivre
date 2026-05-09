@@ -284,56 +284,134 @@
     <!-- Arquivos (Downloads) -->
     <div class="col-span-2 border-t pt-6 mt-4">
         <h3 class="text-lg font-medium text-gray-900 mb-4">Arquivos de Download</h3>
-        
+
+        {{-- Arquivos existentes --}}
         @if(isset($book) && $book->files->count() > 0)
-            <div class="mb-4 space-y-2">
+            <div class="mb-6 space-y-2">
                 <p class="text-sm font-medium text-gray-700">Arquivos Existentes:</p>
                 @foreach($book->files as $file)
                     <div class="flex items-center justify-between bg-gray-50 p-3 rounded border">
-                        <div class="flex items-center">
-                            <span class="font-bold text-gray-700 mr-3">{{ $file->format }}</span>
-                            <a href="{{ $file->file_url }}" target="_blank" class="text-blue-600 hover:underline text-sm truncate max-w-xs">
-                                {{ $file->file_url }}
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-gray-700 uppercase text-sm">{{ $file->format }}</span>
+                            @if($file->is_stored_in_bucket)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                    <i class="ri-cloud-fill mr-1"></i> R2
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="ri-link mr-1"></i> URL Externa
+                                </span>
+                            @endif
+                            <a href="{{ $file->download_url }}" target="_blank" class="text-blue-600 hover:underline text-sm truncate max-w-xs">
+                                {{ $file->is_stored_in_bucket ? $file->storage_path : $file->file_url }}
                             </a>
                         </div>
-                        <div class="flex items-center">
-                            <input type="checkbox" name="delete_files[]" value="{{ $file->id }}" class="mr-2 text-red-600 focus:ring-red-500">
-                            <span class="text-sm text-red-600">Excluir</span>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" name="delete_files[]" value="{{ $file->id }}"
+                                id="delete_file_{{ $file->id }}"
+                                class="text-red-600 focus:ring-red-500 rounded">
+                            <label for="delete_file_{{ $file->id }}" class="text-sm text-red-600 cursor-pointer">Excluir</label>
                         </div>
                     </div>
                 @endforeach
             </div>
         @endif
 
-        <div class="space-y-4" x-data="{ files: [{id: 1}] }">
+        {{-- Adicionar novos arquivos --}}
+        <div class="space-y-4"
+             x-data="{
+                 files: [{ id: 1, sourceType: 'url' }],
+                 addFile() { this.files.push({ id: Date.now(), sourceType: 'url' }) },
+                 removeFile(id) { this.files = this.files.filter(f => f.id !== id) }
+             }">
             <p class="text-sm font-medium text-gray-700">Adicionar Novos Arquivos:</p>
-            
+
             <template x-for="(file, index) in files" :key="file.id">
-                <div class="flex gap-4 items-start bg-gray-50 p-3 rounded border border-dashed border-gray-300">
-                    <div class="w-1/4">
-                        <label class="block text-xs font-medium text-gray-500 mb-1">Formato</label>
-                        <select :name="`{{ isset($book) ? 'new_files' : 'files_data' }}[${index}][format]`" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
-                            <option value="">Selecione...</option>
-                            <option value="PDF">PDF</option>
-                            <option value="EPUB">EPUB</option>
-                            <option value="MOBI">MOBI</option>
-                            <option value="TXT">TXT</option>
-                        </select>
+                <div class="bg-gray-50 p-4 rounded border border-dashed border-gray-300 space-y-3">
+                    <div class="flex gap-4 items-start">
+                        {{-- Formato --}}
+                        <div class="w-1/4">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Formato</label>
+                            <select :name="`{{ isset($book) ? 'new_files' : 'files_data' }}[${index}][format]`"
+                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+                                <option value="">Selecione...</option>
+                                <option value="PDF">PDF</option>
+                                <option value="EPUB">EPUB</option>
+                                <option value="MOBI">MOBI</option>
+                                <option value="TXT">TXT</option>
+                            </select>
+                        </div>
+
+                        {{-- Toggle Fonte --}}
+                        <div class="flex-1">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Fonte do Arquivo</label>
+                            <div class="flex rounded-md border border-gray-300 overflow-hidden w-fit">
+                                <button type="button"
+                                        @click="file.sourceType = 'url'"
+                                        :class="file.sourceType === 'url'
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-white text-gray-600 hover:bg-gray-50'"
+                                        class="px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1">
+                                    <i class="ri-link"></i> URL Externa
+                                </button>
+                                <button type="button"
+                                        @click="file.sourceType = 'upload'"
+                                        :class="file.sourceType === 'upload'
+                                            ? 'bg-orange-500 text-white'
+                                            : 'bg-white text-gray-600 hover:bg-gray-50'"
+                                        class="px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1 border-l border-gray-300">
+                                    <i class="ri-cloud-upload-line"></i> Upload (R2)
+                                </button>
+                            </div>
+                            {{-- source_type hidden --}}
+                            <input type="hidden"
+                                   :name="`{{ isset($book) ? 'new_files' : 'files_data' }}[${index}][source_type]`"
+                                   :value="file.sourceType">
+                        </div>
+
+                        {{-- Botão remover --}}
+                        <div class="pt-5">
+                            <button type="button"
+                                    @click="removeFile(file.id)"
+                                    x-show="files.length > 1"
+                                    class="text-red-500 hover:text-red-700">
+                                <i class="ri-delete-bin-line text-lg"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex-1">
-                        <label class="block text-xs font-medium text-gray-500 mb-1">URL Externa de Download</label>
-                        <input type="url" :name="`{{ isset($book) ? 'new_files' : 'files_data' }}[${index}][url]`" placeholder="https://exemplo.com/livro.pdf"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+
+                    {{-- Campo URL Externa --}}
+                    <div x-show="file.sourceType === 'url'" x-cloak>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">URL do arquivo</label>
+                        <input type="url"
+                               :name="`{{ isset($book) ? 'new_files' : 'files_data' }}[${index}][url]`"
+                               placeholder="https://exemplo.com/livro.pdf"
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
                     </div>
-                    <div class="pt-6">
-                        <button type="button" @click="files = files.filter(f => f.id !== file.id)" class="text-red-500 hover:text-red-700" x-show="files.length > 1">
-                            <i class="ri-delete-bin-line"></i>
-                        </button>
+
+                    {{-- Campo Upload --}}
+                    <div x-show="file.sourceType === 'upload'" x-cloak>
+                        <label class="block text-xs font-medium text-gray-500 mb-1">
+                            Arquivo <span class="text-gray-400">(PDF, EPUB, MOBI, TXT — máx. 100 MB)</span>
+                        </label>
+                        <input type="file"
+                               :name="`{{ isset($book) ? 'new_files' : 'files_data' }}[${index}][file]`"
+                               accept=".pdf,.epub,.mobi,.txt"
+                               class="block w-full text-sm text-gray-700 border border-gray-300 rounded-md p-2 bg-white
+                                      file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0
+                                      file:text-xs file:font-medium file:bg-orange-50 file:text-orange-700
+                                      hover:file:bg-orange-100">
+                        <p class="text-xs text-orange-700 mt-1 flex items-center gap-1">
+                            <i class="ri-cloud-fill"></i>
+                            O arquivo será enviado diretamente ao bucket R2 e terá prioridade sobre links externos.
+                        </p>
                     </div>
                 </div>
             </template>
 
-            <button type="button" @click="files.push({id: Date.now()})" class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
+            <button type="button"
+                    @click="addFile()"
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center">
                 <i class="ri-add-circle-line mr-1"></i> Adicionar outro arquivo
             </button>
         </div>

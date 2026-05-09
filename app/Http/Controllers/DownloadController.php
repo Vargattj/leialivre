@@ -9,6 +9,7 @@ namespace App\Http\Controllers;
 use App\Models\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DownloadController extends Controller
 {
@@ -26,12 +27,31 @@ class DownloadController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        // If file is in local storage
-        if (Storage::exists($file->file_url)) {
-            return Storage::download($file->file_url);
+        // Arquivo no bucket R2: stream direto com headers de download
+        if ($file->is_stored_in_bucket) {
+            $path      = $file->storage_path;
+            $extension = pathinfo($path, PATHINFO_EXTENSION);
+            $filename  = Str::slug($file->book->title) . '.' . $extension;
+            $mimeTypes = [
+                'pdf'  => 'application/pdf',
+                'epub' => 'application/epub+zip',
+                'mobi' => 'application/x-mobipocket-ebook',
+                'txt'  => 'text/plain',
+            ];
+            $mime = $mimeTypes[strtolower($extension)] ?? 'application/octet-stream';
+
+            $stream = Storage::disk('r2')->readStream($path);
+
+            return response()->stream(function () use ($stream) {
+                fpassthru($stream);
+            }, 200, [
+                'Content-Type'        => $mime,
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Cache-Control'       => 'no-cache',
+            ]);
         }
 
-        // If external URL, redirect
+        // URL externa: redirecionar normalmente
         return redirect($file->file_url);
     }
 
