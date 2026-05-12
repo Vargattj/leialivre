@@ -56,7 +56,7 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex-shrink-0 h-16 w-12">
-                            <img class="h-16 w-12 object-cover rounded shadow-sm bg-gray-100" src="{{ $book->cover_thumb }}" alt="{{ $book->title }}" onerror="this.src='{{ asset('images/cover-placeholder.webp') }}'">
+                            <img class="h-16 w-12 object-cover rounded shadow-sm bg-gray-100" src="{{ $book->cover_thumb }}" alt="{{ $book->title }}" onerror="this.onerror=null; this.src='{{ asset('images/cover-placeholder.webp') }}'">
                         </div>
                     </td>
                     <td class="px-6 py-4">

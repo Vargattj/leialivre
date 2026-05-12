@@ -7,6 +7,7 @@
                 alt="{{ $book->title }} - Capa do livro{{ $book->mainAuthors->count() > 0 ? ' de ' . $book->mainAuthors->first()->name : '' }}" 
                 class="w-24 h-36 object-contain rounded-lg shadow-md" 
                 src="{{ $book->cover_thumb }}"
+                onerror="this.onerror=null; this.src='{{ asset('images/cover-placeholder.webp') }}'"
                 loading="lazy"
                 width="96"
                 height="144"

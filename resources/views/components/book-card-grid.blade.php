@@ -7,6 +7,7 @@
             alt="{{ $book->title }}" 
             class="w-full h-64 object-contain group-hover:scale-105 transition-transform duration-300" 
             src="{{ $book->cover_thumb }}"
+            onerror="this.onerror=null; this.src='{{ asset('images/cover-placeholder.webp') }}'"
         >
         
         @if($book->categories->count() > 0)

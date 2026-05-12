@@ -69,7 +69,7 @@ class BookController extends Controller
             'files_data.*.format'       => 'required_with:files_data.*|string|in:PDF,EPUB,MOBI,TXT',
             'files_data.*.source_type'  => 'required_with:files_data.*|string|in:url,upload',
             'files_data.*.url'          => 'nullable|url|max:2048',
-            'files_data.*.file'         => 'nullable|file|max:102400|mimes:pdf,epub,application/x-mobipocket-ebook,txt',
+            'files_data.*.file'         => 'nullable|file|max:102400|mimes:pdf,epub,mobi,txt',
         ]);
 
         // Handle Cover
@@ -149,7 +149,7 @@ class BookController extends Controller
             'new_files.*.format'       => 'required_with:new_files.*|string|in:PDF,EPUB,MOBI,TXT',
             'new_files.*.source_type'  => 'required_with:new_files.*|string|in:url,upload',
             'new_files.*.url'          => 'nullable|url|max:2048',
-            'new_files.*.file'         => 'nullable|file|max:102400|mimes:pdf,epub,application/x-mobipocket-ebook,txt',
+            'new_files.*.file'         => 'nullable|file|max:102400|mimes:pdf,epub,mobi,txt',
         ]);
 
         // Handle Cover

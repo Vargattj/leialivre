@@ -242,7 +242,7 @@
         <label class="block text-sm font-medium text-gray-700">Capa do Livro</label>
         <div class="mt-1 flex items-center space-x-5">
             <span class="inline-block h-24 w-16 overflow-hidden bg-gray-100 border rounded">
-                <img src="{{ isset($book) ? $book->cover_thumb : asset('images/cover-placeholder.webp') }}" alt="Capa atual" class="h-full w-full object-cover" onerror="this.src='{{ asset('images/cover-placeholder.webp') }}'">
+                <img src="{{ isset($book) ? $book->cover_thumb : asset('images/cover-placeholder.webp') }}" alt="Capa atual" class="h-full w-full object-cover" onerror="this.onerror=null; this.src='{{ asset('images/cover-placeholder.webp') }}'">
             </span>
             <input type="file" name="cover" accept="image/*"
                 class="bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">

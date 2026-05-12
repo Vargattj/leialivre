@@ -261,12 +261,15 @@ class Book extends Model
      */
     public function getCoverThumbAttribute(): string
     {
-        // Se tiver a miniatura original e NÃO estivermos forçando a usar a capa gerada
-        if ($this->cover_thumbnail_url && !$this->use_generated_cover) {
+        // Capas próprias do sistema (bucket ou geradas) têm prioridade absoluta sobre thumbnails externos de API.
+        if (!empty($this->cover_url) || $this->use_generated_cover) {
+            return $this->cover;
+        }
+
+        if ($this->cover_thumbnail_url) {
             return $this->cover_thumbnail_url;
         }
 
-        // Caso contrário, usamos a lógica completa de fallback da capa principal
         return $this->cover;
     }
 
