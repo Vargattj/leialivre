@@ -242,13 +242,7 @@
         <label class="block text-sm font-medium text-gray-700">Capa do Livro</label>
         <div class="mt-1 flex items-center space-x-5">
             <span class="inline-block h-24 w-16 overflow-hidden bg-gray-100 border rounded">
-                @if(isset($book) && $book->cover_url)
-                    <img src="{{ $book->cover_url }}" alt="Capa atual" class="h-full w-full object-cover">
-                @else
-                    <div class="h-full w-full flex items-center justify-center text-gray-300">
-                        <i class="ri-image-line text-2xl"></i>
-                    </div>
-                @endif
+                <img src="{{ isset($book) ? $book->cover_thumb : asset('images/cover-placeholder.webp') }}" alt="Capa atual" class="h-full w-full object-cover" onerror="this.src='{{ asset('images/cover-placeholder.webp') }}'">
             </span>
             <input type="file" name="cover" accept="image/*"
                 class="bg-white py-2 px-3 border border-gray-300 rounded-md shadow-sm text-sm leading-4 font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -320,7 +314,7 @@
         {{-- Adicionar novos arquivos --}}
         <div class="space-y-4"
              x-data="{
-                 files: [{ id: 1, sourceType: 'url' }],
+                 files: {{ isset($book) ? '[]' : "[{ id: 1, sourceType: 'url' }]" }},
                  addFile() { this.files.push({ id: Date.now(), sourceType: 'url' }) },
                  removeFile(id) { this.files = this.files.filter(f => f.id !== id) }
              }">
@@ -373,7 +367,6 @@
                         <div class="pt-5">
                             <button type="button"
                                     @click="removeFile(file.id)"
-                                    x-show="files.length > 1"
                                     class="text-red-500 hover:text-red-700">
                                 <i class="ri-delete-bin-line text-lg"></i>
                             </button>

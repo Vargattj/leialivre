@@ -56,13 +56,7 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex-shrink-0 h-16 w-12">
-                            @if($book->cover_url)
-                                <img class="h-16 w-12 object-cover rounded shadow-sm" src="{{ $book->cover_url }}" alt="{{ $book->title }}">
-                            @else
-                                <div class="h-16 w-12 bg-gray-200 flex items-center justify-center text-gray-400 rounded">
-                                    <i class="ri-book-line text-xl"></i>
-                                </div>
-                            @endif
+                            <img class="h-16 w-12 object-cover rounded shadow-sm bg-gray-100" src="{{ $book->cover_thumb }}" alt="{{ $book->title }}" onerror="this.src='{{ asset('images/cover-placeholder.webp') }}'">
                         </div>
                     </td>
                     <td class="px-6 py-4">

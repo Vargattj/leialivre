@@ -24,8 +24,31 @@ Funções JS disponíveis globalmente após incluir este componente:
             <i class="ri-close-line" style="color: #9ca3af; font-size: 0.875rem; line-height: 1;"></i>
         </button>
 
+        {{-- ======== ESTADO 0: Carregando ======== --}}
+        <div id="popup-state-loading" class="hidden" style="padding: 2rem;">
+            <style>
+                @keyframes custom-spin-loader {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                .animate-custom-spin {
+                    animation: custom-spin-loader 1s linear infinite;
+                    display: inline-block;
+                }
+            </style>
+            <div class="text-center">
+                <div class="flex justify-center" style="margin-bottom: 1.5rem;">
+                    <div class="relative w-20 h-20 flex items-center justify-center">
+                        <i class="ri-loader-4-line text-6xl animate-custom-spin" style="color: #004D40;"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold" style="color: #333333; margin-bottom: 0.375rem;">Preparando arquivo...</h3>
+                <p style="color: #4b5563; margin-bottom: 1rem;">Aguarde um instante enquanto preparamos <span id="loading-book-title" class="font-semibold" style="color: #004D40;">o livro</span> para você.</p>
+            </div>
+        </div>
+
         {{-- ======== ESTADO 1: Confirmação de download ======== --}}
-        <div id="popup-state-download" style="padding: 2rem;">
+        <div id="popup-state-download" class="hidden" style="padding: 2rem;">
             <div class="text-center">
 
                 {{-- Ícone circular com anel de ping --}}
@@ -53,8 +76,7 @@ Funções JS disponíveis globalmente após incluir este componente:
                     </div>
 
                     <p class="text-sm leading-relaxed" style="color: #6b7280; margin-bottom: 1.25rem;">
-                        Pesquisamos e curamos obras em domínio público para que você possa encontrá-las facilmente. Sua
-                        doação mantém o site no ar.
+                        Pesquisamos e curamos obras em domínio público para que você possa encontrá-las facilmente. Sua doação mantém o site no ar.
                     </p>
 
                     <button onclick="showPopupPix()"
@@ -232,7 +254,7 @@ Funções JS disponíveis globalmente após incluir este componente:
 
     // ── Navegação entre estados ─────────────────────────────────────
     function _showState(id) {
-        ['popup-state-download', 'popup-state-pix', 'popup-state-qrcode'].forEach(s => {
+        ['popup-state-loading', 'popup-state-download', 'popup-state-pix', 'popup-state-qrcode'].forEach(s => {
             document.getElementById(s).classList.add('hidden');
         });
         document.getElementById(id).classList.remove('hidden');
@@ -340,22 +362,38 @@ Funções JS disponíveis globalmente após incluir este componente:
 
     function showDownloadPopup(url, title = 'o livro') {
         const overlay = document.getElementById('download-popup-overlay');
-        const titleEl = document.getElementById('download-book-title');
+        const titleElLoading = document.getElementById('loading-book-title');
+        const titleElDownload = document.getElementById('download-book-title');
 
-        if (titleEl) titleEl.textContent = title;
+        if (titleElLoading) titleElLoading.textContent = title;
+        if (titleElDownload) titleElDownload.textContent = title;
 
-        showPopupDownload();
+        _showState('popup-state-loading');
 
         overlay.classList.remove('hidden');
         overlay.classList.add('flex');
 
-        // Dispara download via <a download> — não navega para fora da página
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = '';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        // Aguarda 2 segundos para iniciar o download
+        setTimeout(() => {
+            try {
+                // Dispara download via <a download>
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } catch (e) {
+                console.error("Erro ao iniciar o download via a.click():", e);
+                window.location.href = url; // Fallback se o navegador bloquear o click
+            }
+
+            // Muda para o estado de "Download Iniciado" se o usuário ainda estiver na tela de loading
+            const loadingState = document.getElementById('popup-state-loading');
+            if (!loadingState.classList.contains('hidden')) {
+                _showState('popup-state-download');
+            }
+        }, 2000);
     }
 
     function closeDownloadPopup() {

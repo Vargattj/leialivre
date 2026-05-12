@@ -181,51 +181,25 @@
                         </div>
 
                         
-                        <!-- Meta Info -->
-                        <div class="flex flex-wrap gap-3 mb-8">
-                            @if ($book->publication_year)
-                                <span
-                                    class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
-                                    <i class="ri-calendar-line mr-2 text-[#B8860B]"></i><span itemprop="datePublished">{{ $book->publication_year }}</span>
-                                </span>
-                            @endif
-                            @if ($book->categories->count() > 0)
-                                @foreach ($book->categories->take(2) as $category)
-                                    <a href="{{ route('livros.categorias', $category->slug) }}"
-                                        class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm hover:border-[#004D40] transition-colors"
-                                        itemprop="genre">
-                                        <i class="ri-bookmark-line mr-2 text-[#B8860B]"></i>{{ $category->name }}
-                                    </a>
-                                @endforeach
-                            @endif
-                            @if ($book->original_language)
-                                <span
-                                    class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
-                                    <i class="ri-global-line mr-2 text-[#B8860B]"></i>
-                                    <span itemprop="inLanguage">{{ $book->original_language == 'pt' || $book->original_language == 'pt-BR' ? 'Português' : 'Inglês' }}</span>
-                                </span>
-                            @endif
-                            @if ($book->is_public_domain)
-                                <span
-                                    class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
-                                    <i class="ri-creative-commons-line mr-2 text-[#B8860B]"></i>Dominio Público
-                                </span>
-                            @endif
-                        </div>
+                    @if ($book->synopsis)
+                        <section aria-labelledby="book-summary-title" class="mb-8 expandable-text-container" data-lines="3">
+                            <h2 id="book-summary-title" class="sr-only">Sinopse do Livro</h2>
+                            <div class="prose prose-lg max-w-none">
+                                <p class="expandable-content custom-clamp-3 text-[#333333] leading-relaxed text-md" itemprop="description">
+                                    {{ $book->synopsis }}
+                                </p>
+                            </div>
+                            <button type="button" class="expand-btn hidden text-[#004D40] font-medium text-base mt-2 flex items-center hover:underline focus:outline-none" onclick="toggleExpand(this)">
+                                <span class="btn-text flex items-center"><i class="ri-arrow-down-line mr-1"></i> Ler mais</span>
+                            </button>
+                        </section>
+                    @endif
+
+                    
+                    <!-- Meta Info -->
+          
                     </div>
 
-                    @if ($book->synopsis || $book->full_description)
-                        <!-- <section aria-labelledby="book-summary-title">
-                            <h2 id="book-summary-title" class="sr-only">Resumo do Livro</h2>
-                            <div class="prose prose-lg max-w-none">
-                                @if ($book->synopsis)
-                                    <p class="text-[#333333] leading-relaxed text-lg mb-6 line-clamp-4" itemprop="description" style="-webkit-line-clamp: 4; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">
-                                        {{ $book->synopsis }}
-                                    </p>
-                                @endif
-                            </div>
-                        </section> -->
-                    @endif
                     <!-- Download Section -->
                     @if ($book->activeFiles->count() > 0)
                         @php
@@ -297,6 +271,36 @@
                             </p>
                         </div>
                     @endif
+                              <div class="flex flex-wrap gap-3 mb-8">
+                        @if ($book->publication_year)
+                            <span
+                                class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
+                                    <i class="ri-calendar-line mr-2 text-[#B8860B]"></i><span itemprop="datePublished">{{ $book->publication_year }}</span>
+                                </span>
+                            @endif
+                            @if ($book->categories->count() > 0)
+                                @foreach ($book->categories->take(2) as $category)
+                                    <a href="{{ route('livros.categorias', $category->slug) }}"
+                                        class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm hover:border-[#004D40] transition-colors"
+                                        itemprop="genre">
+                                        <i class="ri-bookmark-line mr-2 text-[#B8860B]"></i>{{ $category->name }}
+                                    </a>
+                                @endforeach
+                            @endif
+                            @if ($book->original_language)
+                                <span
+                                    class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
+                                    <i class="ri-global-line mr-2 text-[#B8860B]"></i>
+                                    <span itemprop="inLanguage">{{ $book->original_language == 'pt' || $book->original_language == 'pt-BR' ? 'Português' : 'Inglês' }}</span>
+                                </span>
+                            @endif
+                            @if ($book->is_public_domain)
+                                <span
+                                    class="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-200 text-sm">
+                                    <i class="ri-creative-commons-line mr-2 text-[#B8860B]"></i>Dominio Público
+                                </span>
+                            @endif
+                        </div>
                 </div>
             </div>
         </div>
@@ -308,19 +312,17 @@
             <!-- Left Column - Main Content -->
             <div class="lg:col-span-2 space-y-12">
                 <!-- About Section -->
-                @if ($book->synopsis || $book->full_description)
-                    <section id="about" aria-labelledby="about-title">
+                @if ($book->full_description)
+                    <section id="about" aria-labelledby="about-title" class="expandable-text-container" data-lines="5">
                         <h2 id="about-title" class="text-3xl font-bold text-[#333333] mb-6">Sobre Este Livro</h2>
                         <div class="prose prose-lg max-w-none">
-                            @if ($book->synopsis)
-                                <p class="text-[#333333] leading-relaxed text-lg mb-6">{{ $book->synopsis }}</p>
-                            @endif
-                            @if ($book->full_description)
-                                <div class="text-[#333333] leading-relaxed text-lg" itemprop="text">
-                                    {!! nl2br(e($book->full_description)) !!}
-                                </div>
-                            @endif
+                            <div class="expandable-content custom-clamp-5 text-[#333333] leading-relaxed text-lg" itemprop="text">
+                                {!! nl2br(e($book->full_description)) !!}
+                            </div>
                         </div>
+                        <button type="button" class="expand-btn hidden text-[#004D40] font-medium text-base mt-2 flex items-center hover:underline focus:outline-none" onclick="toggleExpand(this)">
+                            <span class="btn-text flex items-center"><i class="ri-arrow-down-line mr-1"></i> Ler mais</span>
+                        </button>
                     </section>
                 @endif
 
@@ -727,6 +729,21 @@
 
     <x-download-popup />
 
+    <style>
+        .custom-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .custom-clamp-5 {
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+
     <script>
         // ──────────────────────────────────────────────
         // selectFormat
@@ -965,6 +982,36 @@
                 button.setAttribute('aria-expanded', 'true');
                 icon.classList.remove('ri-arrow-down-s-line');
                 icon.classList.add('ri-arrow-up-s-line');
+            }
+        }
+
+        // Expandable text logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const containers = document.querySelectorAll('.expandable-text-container');
+            containers.forEach(container => {
+                const content = container.querySelector('.expandable-content');
+                const btn = container.querySelector('.expand-btn');
+                
+                // Compare scrollHeight with clientHeight to see if it overflows
+                if (content.scrollHeight > content.clientHeight) {
+                    btn.classList.remove('hidden');
+                }
+            });
+        });
+
+        function toggleExpand(btn) {
+            const container = btn.closest('.expandable-text-container');
+            const content = container.querySelector('.expandable-content');
+            const btnText = btn.querySelector('.btn-text');
+            const lines = container.getAttribute('data-lines');
+            const clampClass = `custom-clamp-${lines}`;
+            
+            if (content.classList.contains(clampClass)) {
+                content.classList.remove(clampClass);
+                btnText.innerHTML = '<i class="ri-arrow-up-line mr-1"></i> Ver menos';
+            } else {
+                content.classList.add(clampClass);
+                btnText.innerHTML = '<i class="ri-arrow-down-line mr-1"></i> Ler mais';
             }
         }
     </script>
