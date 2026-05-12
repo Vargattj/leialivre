@@ -29,7 +29,7 @@
                 </a>
             </div>
             <div class="hidden md:flex ml-auto max-w-lg mx-8  w-1/3">
-                <form class="relative w-full" action="{{ route('livros.buscar') }}" method="GET">
+                <form class="relative w-full" action="{{ route('livros.buscar') }}" method="GET" onsubmit="if(typeof mixpanel !== 'undefined') mixpanel.track('site_search', { term: this.q.value });">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <i class="ri-search-line text-gray-400 text-sm"></i>
                     </div>
@@ -86,7 +86,7 @@
                         </a>
                     </div>
                     <div class="py-6">
-                        <form action="{{ route('livros.buscar') }}" method="GET" class="relative">
+                        <form action="{{ route('livros.buscar') }}" method="GET" class="relative" onsubmit="if(typeof mixpanel !== 'undefined') mixpanel.track('site_search', { term: this.q.value });">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="ri-search-line text-gray-400"></i>
                             </div>

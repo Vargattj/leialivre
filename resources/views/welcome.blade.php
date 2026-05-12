@@ -45,7 +45,7 @@
                 </p>
 
                 <div class="mb-12">
-                    <form action="{{ route('livros.buscar') }}" method="GET" class="max-w-2xl mx-auto">
+                    <form action="{{ route('livros.buscar') }}" method="GET" class="max-w-2xl mx-auto" onsubmit="if(typeof mixpanel !== 'undefined') mixpanel.track('site_search', { term: this.q.value });">
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <i class="ri-search-line text-gray-400 text-xl"></i>

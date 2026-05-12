@@ -263,6 +263,9 @@ Funções JS disponíveis globalmente após incluir este componente:
     function showPopupDownload() { _showState('popup-state-download'); }
 
     function showPopupPix() {
+        if (typeof mixpanel !== 'undefined') {
+            mixpanel.track('donation_click');
+        }
         _showState('popup-state-pix');
         document.querySelectorAll('.pix-value-btn').forEach(btn => {
             _resetPixBtn(btn);
@@ -291,6 +294,9 @@ Funções JS disponíveis globalmente após incluir este componente:
 
     // ── Gerar QR Code com payload PIX válido ────────────────────────
     function gerarQrCodePix() {
+        if (typeof mixpanel !== 'undefined') {
+            mixpanel.track('donation_value', { value: _pixValor });
+        }
         _pixPayloadAtual = _gerarPayloadPix(_PIX_CHAVE, _pixValor, _PIX_NOME, _PIX_CIDADE);
         const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=' + encodeURIComponent(_pixPayloadAtual);
 

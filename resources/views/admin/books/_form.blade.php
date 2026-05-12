@@ -21,6 +21,20 @@
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
     </div>
 
+    <!-- Número de Páginas -->
+    <div class="col-span-2 md:col-span-1">
+        <label for="pages" class="block text-sm font-medium text-gray-700">Número de Páginas</label>
+        <input type="number" name="pages" id="pages" value="{{ old('pages', $book->pages ?? '') }}" min="1"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+    </div>
+
+    <!-- Idioma Original -->
+    <div class="col-span-2 md:col-span-1">
+        <label for="original_language" class="block text-sm font-medium text-gray-700">Idioma Original</label>
+        <input type="text" name="original_language" id="original_language" value="{{ old('original_language', $book->original_language ?? '') }}"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2">
+    </div>
+
     <!-- Autores -->
     <div class="col-span-2 md:col-span-1" x-data="{ 
         showAuthorModal: false, 

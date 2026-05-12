@@ -43,7 +43,7 @@
                 </div>
 
                 <!-- Search Form -->
-                <form class="max-w-4xl mx-auto" action="{{ route('livros.buscar') }}" method="GET">
+                <form class="max-w-4xl mx-auto" action="{{ route('livros.buscar') }}" method="GET" onsubmit="if(typeof mixpanel !== 'undefined') mixpanel.track('site_search', { term: this.q.value });">
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="ri-search-line text-gray-400 text-xl"></i>

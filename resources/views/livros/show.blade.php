@@ -776,6 +776,10 @@
         }
 
         function trackPurchaseClick(bookId) {
+            if (typeof mixpanel !== 'undefined') {
+                mixpanel.track('buy_click', { book_id: bookId });
+            }
+
             fetch('{{ route("track.event") }}', {
                 method: 'POST',
                 headers: {

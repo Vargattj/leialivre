@@ -48,4 +48,8 @@ return [
         'analytics_id' => env('GOOGLE_ANALYTICS_ID'),
     ],
 
+    'mixpanel' => [
+        'token' => env('MIXPANEL_TOKEN'),
+    ],
+
 ];
