@@ -51,6 +51,13 @@ tiver um StudyGuide publicado.
                         class="font-semibold" style="color: #004D40;">o livro</span>!</p>
                 <p class="text-sm" style="color: #9ca3af;">Boa leitura!</p>
             </div>
+
+            {{-- Divulgação temporária de curso parceiro (Hotmart) — só aparece
+                 quando o livro não tem guia próprio publicado. Remover quando
+                 os guias assumirem este espaço. --}}
+            <div style="border-top: 1px solid #e5e7eb; margin-top: 1.5rem; padding-top: 1.25rem; text-align: center;">
+                <x-partner-offer placement="download_popup" :extra="['book_id' => $book->id ?? null]" :auto-view="false" />
+            </div>
         </div>
 
         @if ($guide)
@@ -201,6 +208,14 @@ tiver um StudyGuide publicado.
             }
         } else {
             _showState('popup-state-confirm');
+
+            // Oferta do curso parceiro (ver x-partner-offer): só conta como
+            // visualização quando o popup de fato abre neste estado, não a
+            // cada carregamento de página.
+            const offerEl = document.getElementById('partner-offer-download_popup');
+            if (offerEl && typeof trackGuideEvent === 'function') {
+                trackGuideEvent('partner_offer_view', JSON.parse(offerEl.dataset.tracking));
+            }
         }
 
         overlay.classList.remove('hidden');

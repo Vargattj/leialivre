@@ -21,4 +21,9 @@ enum AnalyticsEventType: string
     // Ligados ao postback assim que a plataforma de pagamento for escolhida
     case CheckoutStart = 'checkout_start';
     case Purchase = 'purchase';
+
+    // Divulgação temporária de curso parceiro (Hotmart) enquanto não há
+    // guias próprios publicados. metadata.placement identifica a superfície
+    // (empty_search | download_popup). Remover quando os guias assumirem.
+    case PartnerOfferClick = 'partner_offer_click';
 }
