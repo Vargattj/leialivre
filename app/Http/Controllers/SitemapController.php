@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Author;
 use App\Models\Book;
 use App\Models\Category;
+use App\Models\StudyGuide;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -32,8 +33,14 @@ class SitemapController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
+        // Get all published study guides — landing dedicada, é uma das razões dela existir
+        $guides = StudyGuide::published()
+            ->select('slug', 'updated_at')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
         // Build the sitemap XML
-        $sitemap = $this->generateSitemapXml($books, $authors, $categories);
+        $sitemap = $this->generateSitemapXml($books, $authors, $categories, $guides);
 
         return response($sitemap, 200)
             ->header('Content-Type', 'application/xml');
@@ -42,7 +49,7 @@ class SitemapController extends Controller
     /**
      * Generate the sitemap XML content
      */
-    private function generateSitemapXml($books, $authors, $categories): string
+    private function generateSitemapXml($books, $authors, $categories, $guides): string
     {
         $xml = '<?xml version="1.0" encoding="UTF-8"?>';
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
@@ -116,6 +123,16 @@ class SitemapController extends Controller
                 $category->updated_at->toAtomString(),
                 'weekly',
                 '0.6'
+            );
+        }
+
+        // Study guide landing pages (destino de campanhas pagas e SEO próprio)
+        foreach ($guides as $guide) {
+            $xml .= $this->addUrl(
+                route('guias.show', $guide->slug),
+                $guide->updated_at->toAtomString(),
+                'weekly',
+                '0.7'
             );
         }
 

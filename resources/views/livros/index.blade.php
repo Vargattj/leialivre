@@ -212,6 +212,16 @@
                                 class="inline-flex items-center justify-center font-medium transition-colors duration-200 cursor-pointer whitespace-nowrap bg-[#004D40] text-white hover:bg-[#00695C] px-6 py-3 rounded-lg">
                                 <i class="ri-arrow-left-line mr-2"></i>Ver Todos os Livros
                             </a>
+
+                            {{-- Divulgação temporária de curso parceiro (Hotmart) — remover
+                                 quando os guias de estudo próprios estiverem no ar. Maior
+                                 intenção ociosa do site: busca sem resultado, sem conteúdo
+                                 grátis concorrente pra oferecer aqui. --}}
+                            <div class="max-w-md mx-auto mt-10 pt-8 border-t border-gray-200">
+                                <div class="bg-[#FDFBF6] border border-[#B8860B]/30 rounded-xl p-5 text-center">
+                                    <x-partner-offer placement="empty_search" :extra="['term' => $term ?? null]" />
+                                </div>
+                            </div>
                         </div>
                     @endif
                 </div>

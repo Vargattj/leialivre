@@ -15,6 +15,7 @@ class RobotsController extends Controller
         $content .= "Allow: /\n";
         $content .= "Disallow: /admin/\n";
         $content .= "Disallow: /download/\n";
+        $content .= "Disallow: /checkout/\n";
         $content .= "\n";
         $content .= "# Sitemap\n";
         $content .= "Sitemap: " . url('/sitemap.xml') . "\n";
