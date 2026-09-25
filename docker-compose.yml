@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: leialivre-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: leialivre
+      POSTGRES_USER: leialivre
+      POSTGRES_PASSWORD: leialivre
+    volumes:
+      - leialivre-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  leialivre-postgres-data:

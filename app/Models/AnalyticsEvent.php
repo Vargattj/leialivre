@@ -11,7 +11,13 @@ class AnalyticsEvent extends Model
         'book_id',
         'file_id',
         'ip_address',
+        'metadata',
+        'lead_id',
         'created_at',
+    ];
+
+    protected $casts = [
+        'metadata' => 'array',
     ];
 
     public function book()
@@ -22,5 +28,10 @@ class AnalyticsEvent extends Model
     public function file()
     {
         return $this->belongsTo(File::class);
+    }
+
+    public function lead()
+    {
+        return $this->belongsTo(Lead::class);
     }
 }

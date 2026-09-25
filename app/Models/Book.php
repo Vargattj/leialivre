@@ -168,6 +168,16 @@ class Book extends Model
         return $this->hasMany(BookFaq::class);
     }
 
+    public function guide()
+    {
+        return $this->hasOne(StudyGuide::class);
+    }
+
+    public function publishedGuide()
+    {
+        return $this->hasOne(StudyGuide::class)->where('is_published', true);
+    }
+
     public function activeFaqs()
     {
         return $this->hasMany(BookFaq::class)->active()->ordered();

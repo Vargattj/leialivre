@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
+        // Postbacks externos (plataforma de pagamento) não têm sessão nem
+        // token CSRF do Laravel — a autenticidade é validada por assinatura
+        // dentro do próprio PaymentWebhookController.
+        $middleware->validateCsrfTokens(except: ['webhooks/*']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

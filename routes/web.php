@@ -45,6 +45,27 @@ Route::prefix('download')->name('download.')->group(function () {
 // Tracking
 Route::post('/track/event', [App\Http\Controllers\TrackingController::class, 'track'])->name('track.event');
 
+// Guias de estudo (funil de captura de e-mail)
+Route::prefix('guias')->name('guias.')->group(function () {
+    Route::get('/{slug}', [App\Http\Controllers\GuideController::class, 'show'])->name('show');
+    Route::post('/{slug}/lead', [App\Http\Controllers\GuideController::class, 'capture'])->name('capture');
+    // Sem assinatura: o guia grátis é isca do produto pago, então link
+    // compartilhado que funciona é feature, não falha. O token é opcional e
+    // serve só para atribuir o download ao lead — é ele que a automação do
+    // Brevo monta a partir do atributo PUBLIC_ID.
+    Route::get('/{slug}/baixar/{token?}', [App\Http\Controllers\GuideController::class, 'download'])->name('download');
+});
+
+// Link estável usado dentro dos PDFs e no site — nunca aponta direto pra plataforma de pagamento
+Route::get('/checkout/{slug}', [App\Http\Controllers\CheckoutController::class, 'redirect'])->name('checkout');
+
+// Postback de pagamento — reservado, parser entra com a escolha da plataforma
+Route::post('/webhooks/pagamento', [App\Http\Controllers\PaymentWebhookController::class, 'handle'])
+    ->middleware('throttle:60,1')->name('webhooks.payment');
+
+// Política de privacidade (LGPD — consentimento na captura do guia)
+Route::view('/privacidade', 'privacy.index')->name('privacy.index');
+
 // Ratings
 Route::prefix('ratings')->name('ratings.')->group(function () {
     Route::post('/book/{bookId}', [App\Http\Controllers\RatingController::class, 'store'])->name('store');
@@ -101,6 +122,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/create-author', [App\Http\Controllers\Admin\JsonImportController::class, 'createAuthor'])->name('create-author');
         Route::post('/create-category', [App\Http\Controllers\Admin\JsonImportController::class, 'createCategory'])->name('create-category');
     });
+
+    // Guia de estudo (1:1 com o livro) — form próprio, separado do form do livro
+    Route::put('books/{book}/guide', [App\Http\Controllers\Admin\StudyGuideController::class, 'update'])
+        ->name('books.guide.update');
 
     // Book FAQs
     Route::prefix('books/{book}/faqs')->name('books.faqs.')->group(function () {

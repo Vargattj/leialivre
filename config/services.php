@@ -52,4 +52,13 @@ return [
         'token' => env('MIXPANEL_TOKEN'),
     ],
 
+    'brevo' => [
+        'key'     => env('BREVO_API_KEY'),
+        'list_id' => env('BREVO_LIST_ID'),
+    ],
+
+    'payment' => [
+        'webhook_secret' => env('PAYMENT_WEBHOOK_SECRET'),
+    ],
+
 ];

@@ -34,6 +34,107 @@
         </form>
     </div>
 
+    <!-- Guia de Estudo Section -->
+    @php($guide = $book->guide)
+    <div class="bg-white rounded-lg shadow overflow-hidden p-6 mb-6">
+        <div class="mb-6 flex items-center justify-between">
+            <h2 class="text-xl font-bold text-gray-800">Guia de Estudo</h2>
+            @if($guide?->is_published)
+                <a href="{{ route('guias.show', $guide->slug) }}" target="_blank"
+                    class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded hover:bg-green-200">
+                    Publicado — ver landing
+                </a>
+            @elseif($guide)
+                <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Rascunho</span>
+            @else
+                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">Sem guia</span>
+            @endif
+        </div>
+
+        <p class="text-sm text-gray-500 mb-4">
+            Quando publicado, o guia aparece como oferta no popup de download deste livro.
+            Sem guia publicado, o popup mostra apenas a confirmação.
+        </p>
+
+        @if($errors->guide->any())
+            <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <ul class="list-disc list-inside">
+                    @foreach($errors->guide->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('admin.books.guide.update', $book) }}" method="POST"
+            enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+
+            <div class="mb-4">
+                <label for="guide_title" class="block text-sm font-medium text-gray-700 mb-2">Título do guia</label>
+                <input type="text" name="guide_title" id="guide_title" required
+                    value="{{ old('guide_title', $guide->title ?? 'Guia de Estudo: ' . $book->title) }}"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div class="mb-4">
+                <label for="guide_pdf" class="block text-sm font-medium text-gray-700 mb-2">PDF gratuito</label>
+                <input type="file" name="guide_pdf" id="guide_pdf" accept="application/pdf"
+                    class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                @if($guide?->free_pdf_path)
+                    <p class="mt-1 text-xs text-gray-500">
+                        Arquivo atual: <code>{{ $guide->free_pdf_path }}</code>
+                        @unless($guide->hasFile())
+                            <span class="text-red-600 font-semibold">— não encontrado no disco!</span>
+                        @endunless
+                        <br>Enviar um novo substitui o atual.
+                    </p>
+                @else
+                    <p class="mt-1 text-xs text-gray-500">Nenhum arquivo enviado ainda. É obrigatório para publicar.</p>
+                @endif
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="guide_checkout_url" class="block text-sm font-medium text-gray-700 mb-2">
+                        Link de checkout <span class="text-gray-400 font-normal">(opcional)</span>
+                    </label>
+                    <input type="url" name="guide_checkout_url" id="guide_checkout_url"
+                        value="{{ old('guide_checkout_url', $guide->checkout_url ?? '') }}"
+                        placeholder="https://..."
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <p class="mt-1 text-xs text-gray-500">
+                        Destino de <code>/checkout/{{ $guide->slug ?? 'guia-' . $book->slug }}</code>.
+                        Vazio cai na landing.
+                    </p>
+                </div>
+                <div>
+                    <label for="guide_price_reais" class="block text-sm font-medium text-gray-700 mb-2">
+                        Preço em R$ <span class="text-gray-400 font-normal">(opcional)</span>
+                    </label>
+                    <input type="number" name="guide_price_reais" id="guide_price_reais" step="0.01" min="0"
+                        value="{{ old('guide_price_reais', $guide?->price_cents ? number_format($guide->price_cents / 100, 2, '.', '') : '') }}"
+                        placeholder="19.90"
+                        class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+
+            <div class="flex items-center mb-4">
+                <input type="checkbox" name="guide_is_published" id="guide_is_published" value="1"
+                    {{ old('guide_is_published', $guide->is_published ?? false) ? 'checked' : '' }}
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                <label for="guide_is_published" class="ml-2 text-sm font-medium text-gray-700">
+                    Publicado <span class="text-gray-400 font-normal">— exibe a oferta no popup deste livro</span>
+                </label>
+            </div>
+
+            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                Salvar guia
+            </button>
+        </form>
+    </div>
+
     <!-- FAQs Section -->
     <div class="bg-white rounded-lg shadow overflow-hidden p-6">
         <div class="mb-6 flex items-center justify-between">
