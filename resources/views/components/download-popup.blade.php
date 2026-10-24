@@ -7,19 +7,22 @@ Funções JS disponíveis globalmente após incluir este componente:
 - closeDownloadPopup() → fechar o popup manualmente
 
 O download do livro nunca é bloqueado por este popup: ele dispara imediatamente
-e o popup abre em paralelo, mostrando a oferta do guia de estudo quando o livro
-tiver um StudyGuide publicado.
+e o popup abre em paralelo. Com um StudyGuide publicado ele mostra a oferta do
+guia; sem guia, mostra o pedido de doação (PIX).
 --}}
 
 @props(['book' => null])
 
 @php
     $guide = $book?->publishedGuide;
+
+    // Frase de doação (config/donation.php; sorteia se houver mais de uma).
+    $donationVariant = \App\Support\Donation::pickVariant();
 @endphp
 
 <div id="download-popup-overlay" class="hidden fixed inset-0 z-[100] items-center justify-center"
     style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);" onclick="closeDownloadPopup()">
-    <div class="relative bg-white rounded-2xl shadow-2xl w-full mx-4 overflow-hidden" style="max-width: 26rem;"
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full mx-4 overflow-y-auto" style="max-width: 26rem; max-height: 92vh;"
         onclick="event.stopPropagation()">
 
         {{-- Barra decorativa no topo --}}
@@ -33,31 +36,82 @@ tiver um StudyGuide publicado.
             <i class="ri-close-line" style="color: #9ca3af; font-size: 0.875rem; line-height: 1;"></i>
         </button>
 
-        {{-- ======== ESTADO: Confirmação simples (sem guia publicado) ======== --}}
-        <div id="popup-state-confirm" class="hidden" style="padding: 2rem;">
+        {{-- ======== ESTADO: Confirmação + pedido de doação (sem guia publicado) ======== --}}
+        <div id="popup-state-confirm" class="hidden" style="padding: 1.5rem 1.75rem;">
             <div class="text-center">
-                <div class="flex justify-center" style="margin-bottom: 1.5rem;">
-                    <div class="relative w-20 h-20">
-                        <div class="w-20 h-20 rounded-full flex items-center justify-center shadow-lg"
+                <div class="flex justify-center" style="margin-bottom: 0.875rem;">
+                    <div class="relative w-14 h-14">
+                        <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
                             style="background: linear-gradient(135deg, #004D40, #00695C);">
-                            <i class="ri-check-line text-white text-4xl"></i>
+                            <i class="ri-check-line text-white text-3xl"></i>
                         </div>
                         <div class="absolute inset-0 rounded-full border-2 animate-ping"
                             style="border-color: rgba(184, 134, 11, 0.3);"></div>
                     </div>
                 </div>
-                <h3 class="text-2xl font-bold" style="color: #333333; margin-bottom: 0.375rem;">Download Iniciado!</h3>
-                <p style="color: #4b5563; margin-bottom: 0.25rem;">Obrigado por baixar <span id="confirm-book-title"
-                        class="font-semibold" style="color: #004D40;">o livro</span>!</p>
-                <p class="text-sm" style="color: #9ca3af;">Boa leitura!</p>
-            </div>
+                <h3 class="text-xl font-bold" style="color: #333333; margin-bottom: 0.25rem;">Download Iniciado!</h3>
+                <p class="text-sm" style="color: #4b5563; margin-bottom: 1.25rem;">Obrigado por baixar <span id="confirm-book-title"
+                        class="font-semibold" style="color: #004D40;">o livro</span>. Boa leitura!</p>
 
-            {{-- Divulgação temporária de curso parceiro (Hotmart) — só aparece
-                 quando o livro não tem guia próprio publicado. Remover quando
-                 os guias assumirem este espaço. --}}
-            <div style="border-top: 1px solid #e5e7eb; margin-top: 1.5rem; padding-top: 1.25rem; text-align: center;">
-                <x-partner-offer placement="download_popup" :extra="['book_id' => $book->id ?? null]" :auto-view="false" />
+                {{-- Quem já doou recentemente não é cobrado de novo --}}
+                <div id="donation-already" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 1.25rem;">
+                    <p class="text-sm" style="color: #4b5563;">Obrigado por apoiar o Leia Livre.</p>
+                    <div style="margin-top: 1rem;">
+                        <button onclick="closeDownloadPopup()" class="text-sm transition-colors"
+                            style="color: #9ca3af; cursor: pointer;">Continuar navegando</button>
+                    </div>
+                </div>
+
+                <div id="donation-ask" style="border-top: 1px solid #e5e7eb; padding-top: 1.125rem;">
+                    <div class="flex items-center justify-center gap-2" style="margin-bottom: 0.75rem;">
+                        <i class="ri-heart-fill text-lg" style="color: #B8860B;"></i>
+                        <span class="text-sm font-medium" style="color: #333333;">Apoie o projeto</span>
+                        <i class="ri-heart-fill text-lg" style="color: #B8860B;"></i>
+                    </div>
+
+                    {{-- Preenchida por JS a partir do 2º livro baixado neste navegador --}}
+                    <p id="donation-count-line" class="text-sm font-medium"
+                        style="display: none; color: #004D40; margin-bottom: 0.375rem;"></p>
+
+                    <p class="text-sm leading-relaxed" style="color: #6b7280; margin-bottom: 0.75rem;">
+                        {{ $donationVariant['text'] }}
+                    </p>
+
+                    {{-- Meta do mês, sempre visível (inclusive com R$ 0 arrecadado). --}}
+                    <x-donation-progress :compact="true" />
+
+
+
+                    <button onclick="showPopupPix()"
+                        class="w-full text-white font-semibold rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                        style="padding: 0.75rem 1.5rem; background: linear-gradient(to right, #B8860B, #A0750A); cursor: pointer;"
+                        onmouseover="this.style.background='linear-gradient(to right, #A0750A, #8F6408)';"
+                        onmouseout="this.style.background='linear-gradient(to right, #B8860B, #A0750A)';">
+                        <i class="ri-heart-line text-xl"></i>Fazer uma doação
+                    </button>
+
+                    <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.375rem;">
+                        <a href="{{ route('support.index') }}" target="_blank" rel="noopener" class="text-xs"
+                            style="color: #6b7280; text-decoration: underline;">Como o site se mantém</a>
+                        <button onclick="closeDownloadPopup()" class="text-sm transition-colors"
+                            style="color: #9ca3af; cursor: pointer;" onmouseover="this.style.color='#4b5563'"
+                            onmouseout="this.style.color='#9ca3af'">Continuar navegando</button>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        {{-- ======== ESTADO: Doação via PIX (valor, copiar/QR, "Já doei") ======== --}}
+        <div id="popup-state-pix" class="hidden" style="padding: 1.5rem 1.5rem 1.25rem;">
+            <button onclick="showPopupDownload()" class="text-sm transition-colors"
+                style="color: #9ca3af; cursor: pointer; margin-bottom: 0.5rem;" onmouseover="this.style.color='#4b5563'"
+                onmouseout="this.style.color='#9ca3af'">
+                <i class="ri-arrow-left-line" style="margin-right: 0.25rem;"></i>Voltar
+            </button>
+
+            <h3 class="text-lg font-bold text-center" style="color: #333333; margin-bottom: 1rem;">Doação via PIX</h3>
+
+            <x-donation-box surface="popup" :book-id="$book->id ?? null" />
         </div>
 
         @if ($guide)
@@ -143,16 +197,71 @@ tiver um StudyGuide publicado.
     const _guidePopupGuideId = @json($guide->id ?? null);
     const _guidePopupBookId = @json($book->id ?? null);
     const _guidePopupSlug = @json($guide->slug ?? null);
+    const _donationVariant = @json($donationVariant);
     let _guideDownloadUrl = null;
+    let _downloadsCount = null;
+
+    // ── Livros baixados neste navegador (para "este é o seu Nº livro") ──
+    // Guarda os ids, não um contador: baixar o mesmo livro em outro formato
+    // não pode contar como livro novo.
+    function _recordDownload(bookId) {
+        try {
+            const list = JSON.parse(localStorage.getItem('ll_downloaded_books') || '[]');
+            const id = String(bookId);
+            if (bookId && !list.includes(id)) list.push(id);
+            localStorage.setItem('ll_downloaded_books', JSON.stringify(list.slice(-50)));
+            return list.length;
+        } catch (e) {
+            return null; // localStorage indisponível: segue sem personalização
+        }
+    }
+
+    function _donationContext() {
+        return {
+            variant_id: _donationVariant.id,
+            variant_text: _donationVariant.text,
+            downloads_count: _downloadsCount,
+        };
+    }
 
     // ── Navegação entre estados ─────────────────────────────────────
     function _showState(id) {
-        ['popup-state-confirm', 'popup-state-offer', 'popup-state-delivered'].forEach(s => {
+        ['popup-state-confirm', 'popup-state-offer', 'popup-state-delivered', 'popup-state-pix'].forEach(s => {
             const el = document.getElementById(s);
             if (el) el.classList.add('hidden');
         });
         const target = document.getElementById(id);
         if (target) target.classList.remove('hidden');
+    }
+
+    function showPopupDownload() { _showState('popup-state-confirm'); }
+
+    function showPopupPix() {
+        LLDonation.track('donation_click', _donationContext());
+        _showState('popup-state-pix');
+        LLDonation.open(_donationContext());
+    }
+
+    // Prepara o estado de pedido de doação: personaliza pela contagem de livros,
+    // poupa quem já doou e registra a visualização da frase sorteada.
+    function _prepareDonationOffer() {
+        const ask = document.getElementById('donation-ask');
+        const already = document.getElementById('donation-already');
+        const donated = LLDonation.hasDonated();
+
+        ask.style.display = donated ? 'none' : 'block';
+        already.style.display = donated ? 'block' : 'none';
+        if (donated) return;
+
+        const line = document.getElementById('donation-count-line');
+        if (_downloadsCount && _downloadsCount >= 2) {
+            line.textContent = 'Este é o seu ' + _downloadsCount + 'º livro aqui.';
+            line.style.display = 'block';
+        } else {
+            line.style.display = 'none';
+        }
+
+        LLDonation.track('donation_offer_view', _donationContext());
     }
 
     // ── API pública ─────────────────────────────────────────────────
@@ -162,6 +271,8 @@ tiver um StudyGuide publicado.
         const format = btn.dataset.format;
         const bookId = btn.dataset.bookId;
         const title = btn.dataset.bookTitle;
+
+        _downloadsCount = _recordDownload(bookId);
 
         if (typeof trackDownload === 'function') {
             trackDownload(bookId, title, format);
@@ -208,14 +319,7 @@ tiver um StudyGuide publicado.
             }
         } else {
             _showState('popup-state-confirm');
-
-            // Oferta do curso parceiro (ver x-partner-offer): só conta como
-            // visualização quando o popup de fato abre neste estado, não a
-            // cada carregamento de página.
-            const offerEl = document.getElementById('partner-offer-download_popup');
-            if (offerEl && typeof trackGuideEvent === 'function') {
-                trackGuideEvent('partner_offer_view', JSON.parse(offerEl.dataset.tracking));
-            }
+            _prepareDonationOffer();
         }
 
         overlay.classList.remove('hidden');
