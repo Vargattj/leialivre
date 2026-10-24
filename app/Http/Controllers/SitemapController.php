@@ -96,6 +96,15 @@ class SitemapController extends Controller
             );
         }
 
+        if (Route::has('support.index')) {
+            $xml .= $this->addUrl(
+                route('support.index'),
+                now()->toAtomString(),
+                'monthly',
+                '0.4'
+            );
+        }
+
         // Book pages (high priority, changes weekly)
         foreach ($books as $book) {
             $xml .= $this->addUrl(

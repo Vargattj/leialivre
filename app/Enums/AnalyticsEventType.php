@@ -26,4 +26,15 @@ enum AnalyticsEventType: string
     // guias próprios publicados. metadata.placement identifica a superfície
     // (empty_search | download_popup). Remover quando os guias assumirem.
     case PartnerOfferClick = 'partner_offer_click';
+
+    // Doação via PIX (popup pós-download e /apoie). Eventos de cliente, enviados
+    // por trackGuideEvent; o PIX é pago no app do banco, então o último passo
+    // observável é donation_copied ou o autodeclarado donation_claimed.
+    case DonationOfferView = 'donation_offer_view';
+    case DonationClick = 'donation_click';
+    case DonationValue = 'donation_value';
+    case DonationQrView = 'donation_qr_view';
+    case DonationCopied = 'donation_copied';
+    case DonationClaimed = 'donation_claimed';
+    case DonationPageView = 'donation_page_view';
 }
