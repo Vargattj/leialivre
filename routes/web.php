@@ -63,6 +63,9 @@ Route::get('/checkout/{slug}', [App\Http\Controllers\CheckoutController::class, 
 Route::post('/webhooks/pagamento', [App\Http\Controllers\PaymentWebhookController::class, 'handle'])
     ->middleware('throttle:60,1')->name('webhooks.payment');
 
+// Página de apoio (transparência de custos + doação via PIX)
+Route::view('/apoie', 'support.index')->name('support.index');
+
 // Política de privacidade (LGPD — consentimento na captura do guia)
 Route::view('/privacidade', 'privacy.index')->name('privacy.index');
 

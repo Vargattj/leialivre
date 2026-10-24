@@ -19,10 +19,10 @@ Uso:
   manualmente no momento certo.
   x-partner-offer placement="download_popup" :extra="['book_id' => $book->id ?? null]" :auto-view="false"
 
-  Atenção: nunca escrever "<x-partner-offer" (tag real) dentro deste bloco de
-  comentário — o Blade compila tags de componente antes de descartar
-  comentários, e um exemplo assim vira uma chamada recursiva real, estourando
-  a memória em runtime (foi exatamente isso que quebrou aqui da primeira vez).
+  Atenção: não aninhar um comentário Blade dentro de outro. O primeiro fecha
+  o comentário de fora, e o que sobra (como um exemplo com a tag do próprio
+  componente) é compilado de verdade — aqui virou uma chamada recursiva que
+  estourou a memória. Tag dentro de um comentário simples é ignorada.
 --}}
 
 @props(['placement', 'extra' => [], 'autoView' => true])

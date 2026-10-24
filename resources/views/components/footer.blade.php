@@ -35,6 +35,7 @@
                 <h4 class="font-semibold mb-4">Recursos</h4>
                 <ul class="space-y-2">
                     <li><a href="{{ route('about.index') }}" class="text-gray-300 hover:text-white transition-colors">Sobre</a></li>
+                    <li><a href="{{ route('support.index') }}" class="text-gray-300 hover:text-white transition-colors">Apoie o projeto</a></li>
                     <li><a href="{{ route('contact.index') }}" class="text-gray-300 hover:text-white transition-colors">Contato</a></li>
                 </ul>
             </div>
